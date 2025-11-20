@@ -1,0 +1,16 @@
+{
+  "header": {
+    "contactCta": "Contact Us"
+  },
+  "home": {
+    "rollingTexts": [
+      "Understand your users",
+      "Understand your data",
+      "Discuss with data"
+    ]
+  },
+  "footer": {
+    "description": "An integrated behavioral data platform that condenses Nethru's data analysis technology and experience."
+  }
+}
+
