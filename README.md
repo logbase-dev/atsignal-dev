@@ -31,6 +31,23 @@ Monorepo 구조로 다음 앱들을 포함합니다:
 npm install
 ```
 
+### 환경 변수 (Firebase Functions)
+
+뉴스레터 구독 API(`subscribeNewsletter`)를 사용하려면 다음 환경 변수를 설정합니다.
+
+| 변수명                            | 설명                                   |
+| --------------------------------- | -------------------------------------- |
+| `STIBEE_API_KEY`                  | Stibee에서 발급한 API 키               |
+| `STIBEE_LIST_ID`                  | 기본 주소록(리스트) ID                 |
+| `STIBEE_API_BASE_URL` _(선택)_    | 기본값 `https://api.stibee.com/v2`     |
+| `SUBSCRIBERS_COLLECTION` _(선택)_ | Firestore 컬렉션명, 기본 `subscribers` |
+
+Firebase CLI 사용 예시:
+
+```bash
+firebase functions:config:set stibee.api_key="..." stibee.list_id="..."
+```
+
 ### 개발 서버 실행
 
 각 앱별로 개발 서버를 실행할 수 있습니다:
@@ -91,4 +108,31 @@ npm run deploy:all
 - [동적 페이지 구성 방식 정리](./document/AtSignal-동적페이지구성방식정리.md)
 - [InBlog API 연동 설계서](./document/InBlog-API-연동설계서.md)
 - [Jira API 연동](./document/Jira-API-연동.md)
-- [Stibee API 연동 설계서](./document/Stibee-API-연동설계서.md)
+- [Stibee API 연동 설계서](./document/Stibee-API-연동설계서_v1.md)
+
+## Firebase Functions: Newsletter Subscription API
+
+- **엔드포인트**: `https://<region>-<project>.cloudfunctions.net/subscribeNewsletterApi`
+- **메서드**: `POST`
+- **요청 본문**
+
+```json
+{
+  "name": "홍길동",
+  "company": "Nethru",
+  "email": "user@example.com",
+  "phone": "010-1234-5678",
+  "privacyConsent": true
+}
+```
+
+- **성공 응답**
+
+```json
+{
+  "id": "firestore-doc-id",
+  "status": "subscribed"
+}
+```
+
+에러 시 `error`, `statusCode`, `detail` 필드를 포함한 JSON이 반환됩니다. 보다 상세한 동기화 흐름은 [Stibee API 연동 설계서](./document/Stibee-API-연동설계서_v1.md)를 참조하세요.
