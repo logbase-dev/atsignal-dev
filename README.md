@@ -2,6 +2,8 @@
 
 Nethru가 보유한 데이터 분석 기술력과 경험을 집약한 통합 행동데이터 플랫폼
 
+단일 Firebase 프로젝트에서 운영하는 멀티 도메인 웹사이트 모노레포입니다.
+
 ## 프로젝트 구조
 
 Monorepo 구조로 다음 앱들을 포함합니다:
@@ -76,11 +78,17 @@ npm run deploy:all
 
 ## 디렉토리 구조
 
-자세한 디렉토리 구조는 `doc/atsignal-project-structure_v2.md`를 참조하세요.
+자세한 디렉토리 구조는 `document/atsignal-project-structure_v2.md`를 참조하세요.
 
 ## 참고 문서
 
-- [요구사항 정의서](./doc/atsignal-요구사항정의서-초안.md)
-- [설계 문서](./doc/atsignal-설계문서-초안.md)
-- [프로젝트 구조 v2](./doc/atsignal-project-structure_v2.md)
-
+- [요구사항 정의서](./documentoc/atsignal-요구사항정의서-초안.md)
+- [설계 문서](./document/atsignal-설계문서-초안.md)
+- [프로젝트 구조 v2](./document/atsignal-project-structure_v2.md)
+- [프로젝트 구조 v1](./document/atsignal-project-structure_v1.md)
+- [요구사항 정의서](./document/atsignal-요구사항정의서-초안.md)
+- [설계 문서](./document/atsignal-설계문서-초안.md)
+- [동적 페이지 구성 방식 정리](./document/AtSignal-동적페이지구성방식정리.md)
+- [InBlog API 연동 설계서](./document/InBlog-API-연동설계서.md)
+- [Jira API 연동](./document/Jira-API-연동.md)
+- [Stibee API 연동 설계서](./document/Stibee-API-연동설계서.md)
