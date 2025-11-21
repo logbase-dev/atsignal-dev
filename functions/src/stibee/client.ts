@@ -1,27 +1,15 @@
 import { stibeeConfig, requireStibeeConfig } from "../config/stibee";
+import type {
+  StibeeSyncResult,
+  InternalSubscriberPayload,
+} from "./types";
+import { StibeeApiError } from "./types";
 
-export interface StibeeSyncResult<T = unknown> {
-  status: number;
-  data?: T;
-  rawBody: string;
-}
-
-export class StibeeApiError extends Error {
-  constructor(
-    public readonly status: number,
-    public readonly body: string
-  ) {
-    super(`Stibee API Error (${status})`);
-  }
-}
-
-interface InternalSubscriberPayload {
-  email: string;
-  name: string;
-  company: string;
-  phoneNormalized: string;
-}
-
+/**
+ * Stibee 구독자 API에 단일 구독자를 추가한다.
+ * - 구성된 payload는 `subscribers` 배열로 감싸 전송.
+ * - 성공/실패 여부를 StibeeSyncResult 또는 StibeeApiError로 구분한다.
+ */
 export const syncSubscriber = async (
   payload: InternalSubscriberPayload
 ): Promise<StibeeSyncResult> => {

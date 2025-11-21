@@ -6,6 +6,7 @@ import { useEffect, useState, useRef } from "react";
 import { defaultLocale } from '@/lib/i18n/getLocale';
 import koMessages from '@/locales/ko.json';
 import enMessages from '@/locales/en.json';
+import NewsletterModal from '@/components/Newsletter/NewsletterModal';
 
 const translations = {
   ko: koMessages,
@@ -37,6 +38,8 @@ export default function Home({ locale }: HomeProps) {
   const hasAnimatedRef = useRef(false);
   const [activeFeature, setActiveFeature] = useState<string>('log-collecting');
   const featureRefs = useRef<{ [key: string]: HTMLElement | null }>({});
+  const [isNewsletterModalOpen, setIsNewsletterModalOpen] = useState(false);
+  const [emailInput, setEmailInput] = useState('');
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout | null = null;
@@ -523,14 +526,33 @@ export default function Home({ locale }: HomeProps) {
                 type="email"
                 placeholder="이메일 주소"
                 className="form-input"
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    setIsNewsletterModalOpen(true);
+                  }
+                }}
               />
-              <button className="form-button">
+              <button
+                className="form-button"
+                onClick={() => setIsNewsletterModalOpen(true)}
+                type="button"
+              >
                 구독하기
               </button>
             </div>
           </div>
         </div>
       </section>
+
+      <NewsletterModal
+        isOpen={isNewsletterModalOpen}
+        onClose={() => setIsNewsletterModalOpen(false)}
+        locale={currentLocale}
+        initialEmail={emailInput}
+      />
     </div>
   );
 }

@@ -1,11 +1,9 @@
-import * as functions from "firebase-functions";
-import { subscribeNewsletter } from "./handlers/subscribeNewsletter";
+import { api } from "./api";
+import { subscribeNewsletterApi } from "./stibee";
 
-export const api = functions.https.onRequest(
-  (request, response) => {
-    response.json({ message: "API endpoint" });
-  }
-);
+// 통합 API 엔드포인트
+export { api };
 
-export const subscribeNewsletterApi =
-  functions.https.onRequest(subscribeNewsletter);
+// Stibee 뉴스레터 구독 API
+export { subscribeNewsletterApi };
+

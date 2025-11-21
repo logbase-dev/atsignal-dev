@@ -22,7 +22,13 @@
 │   │   ├── app/
 │   │   │   ├── [locale]/
 │   │   │   │    ├── (static)/
+│   │   │   │    │    ├── Company/
+│   │   │   │    │    │    └── page.tsx
+│   │   │   │    │    ├── Pricing/
+│   │   │   │    │    │    └── page.tsx
 │   │   │   │    │    ├── Product/
+│   │   │   │    │    │    └── page.tsx
+│   │   │   │    │    ├── Resources/
 │   │   │   │    │    │    └── page.tsx
 │   │   │   │    │    ├── Solutions/
 │   │   │   │    │    │    └── page.tsx
@@ -156,11 +162,30 @@
 │
 ├── functions/                # Firebase Functions (백엔드 API)
 │   ├── src/
-│   │   ├── index.ts
-│   │   ├── api/
-│   │   ├── cms/
-│   │   ├── jira/
-│   │   └── utils/
+│   │   ├── index.ts          # Functions 진입점
+│   │   ├── api/              # 통합 API 라우팅
+│   │   │   └── index.ts
+│   │   ├── stibee/           # Stibee API 연동
+│   │   │   ├── index.ts      # 엔드포인트 (subscribeNewsletterApi)
+│   │   │   ├── client.ts     # Stibee API 클라이언트
+│   │   │   └── types.ts      # Stibee 관련 타입 정의
+│   │   ├── inblog/           # InBlog API 연동
+│   │   │   ├── index.ts      # 엔드포인트
+│   │   │   ├── client.ts     # InBlog API 클라이언트
+│   │   │   └── types.ts      # InBlog 관련 타입 정의
+│   │   ├── cms/              # CMS 관련 함수
+│   │   │   └── index.ts
+│   │   ├── jira/             # Jira 연동 함수
+│   │   │   └── index.ts
+│   │   ├── config/            # 설정 파일
+│   │   │   └── stibee.ts     # Stibee 설정
+│   │   ├── services/         # 공통 서비스
+│   │   │   └── subscriptionStore.ts
+│   │   ├── types/            # 공통 타입
+│   │   │   └── subscriber.ts
+│   │   ├── utils/            # 유틸리티 함수
+│   │   │   └── index.ts
+│   │   └── firebase.ts       # Firebase 초기화
 │   ├── package.json
 │   └── tsconfig.json
 │
@@ -186,7 +211,10 @@
 | ------------------------------- | ------------------ | -------------------------------------------------- |
 | `/ko`                           | 한국어 홈페이지    | 정적 (`app/[locale]/page.tsx`)                     |
 | `/en`                           | 영어 홈페이지      | 정적 (`app/[locale]/page.tsx`)                     |
+| `/ko/Company`                   | 한국어 정적 페이지 | 정적 (`app/[locale]/(static)/Company/page.tsx`)    |
+| `/ko/Pricing`                   | 한국어 정적 페이지 | 정적 (`app/[locale]/(static)/Pricing/page.tsx`)    |
 | `/ko/Product`                   | 한국어 정적 페이지 | 정적 (`app/[locale]/(static)/Product/page.tsx`)    |
+| `/ko/Resources`                 | 한국어 정적 페이지 | 정적 (`app/[locale]/(static)/Resources/page.tsx`)  |
 | `/en/Solutions`                 | 영어 정적 페이지   | 정적 (`app/[locale]/(static)/Solutions/page.tsx`)  |
 | `/ko/product/log-collecting`    | 한국어 동적 페이지 | 동적 (`app/[locale]/(dynamic)/[...slug]/page.tsx`) |
 | `/en/solutions/by-team/product` | 영어 동적 페이지   | 동적 (`app/[locale]/(dynamic)/[...slug]/page.tsx`) |
@@ -195,7 +223,7 @@
 ### 라우팅 우선순위
 
 1. **홈페이지** (`/ko`, `/en`) - `app/[locale]/page.tsx`
-2. **정적 라우트** (`(static)` 폴더 내) - 예: `/ko/Product`, `/en/Solutions` → `app/[locale]/(static)/Product/page.tsx`
+2. **정적 라우트** (`(static)` 폴더 내) - 예: `/ko/Company`, `/ko/Pricing`, `/ko/Product`, `/ko/Resources`, `/en/Solutions` → `app/[locale]/(static)/{PageName}/page.tsx`
 3. **동적 라우트** (`(dynamic)/[...slug]`) - Firestore에서 페이지 데이터 조회 → `app/[locale]/(dynamic)/[...slug]/page.tsx`
 4. **404 처리** - 페이지가 없을 경우
 
@@ -557,15 +585,16 @@ menus/
 
 ## 🧩 🔟 확장 포인트
 
-| 기능            | 기술                              | 설명                                        |
-| --------------- | --------------------------------- | ------------------------------------------- |
-| 정적 페이지     | Next.js Static Route              | `app/[locale]/(static)/**/page.tsx`         |
-| CMS 페이지 관리 | Firestore + Next.js Dynamic Route | `app/[locale]/(dynamic)/[...slug]/page.tsx` |
-| 블로그/뉴스     | 인블로그 API 연동                 | Firestore 캐싱 가능                         |
-| 고객지원        | Jira API + Functions Proxy        | REST API 호출 방식                          |
-| 이메일/알림     | Firebase Functions + SendGrid     | 고객 메일 알림 처리                         |
-| 다국어 지원     | `[locale]` 라우팅                 | URL 기반 언어 전환                          |
-| 동적 메뉴       | Firestore `menus` 컬렉션          | 운영자 관리 가능                            |
+| 기능            | 기술                                               | 설명                                        |
+| --------------- | -------------------------------------------------- | ------------------------------------------- |
+| 정적 페이지     | Next.js Static Route                               | `app/[locale]/(static)/**/page.tsx`         |
+| CMS 페이지 관리 | Firestore + Next.js Dynamic Route                  | `app/[locale]/(dynamic)/[...slug]/page.tsx` |
+| 블로그/뉴스     | InBlog API 연동 (`functions/src/inblog/`)          | Firestore 캐싱 가능                         |
+| 뉴스레터 구독   | Stibee API 연동 (`functions/src/stibee/`)          | 구독자 동기화 및 관리                       |
+| 고객지원        | Jira API + Functions Proxy (`functions/src/jira/`) | REST API 호출 방식                          |
+| 이메일/알림     | Firebase Functions + SendGrid                      | 고객 메일 알림 처리                         |
+| 다국어 지원     | `[locale]` 라우팅                                  | URL 기반 언어 전환                          |
+| 동적 메뉴       | Firestore `menus` 컬렉션                           | 운영자 관리 가능                            |
 
 ---
 

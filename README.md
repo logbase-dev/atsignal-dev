@@ -97,12 +97,31 @@ npm run deploy:all
 
 자세한 디렉토리 구조는 `document/atsignal-project-structure_v2.md`를 참조하세요.
 
+### Firebase Functions 구조
+
+```
+functions/src/
+├── api/              # 통합 API 라우팅
+├── stibee/          # Stibee API 연동 (뉴스레터 구독)
+│   ├── index.ts     # 엔드포인트
+│   ├── client.ts    # API 클라이언트
+│   └── types.ts     # 타입 정의
+├── inblog/          # InBlog API 연동 (블로그/뉴스)
+├── cms/             # CMS 관련 함수
+├── jira/            # Jira 연동 함수
+├── config/          # 설정 파일
+├── services/        # 공통 서비스
+├── types/           # 공통 타입
+└── utils/           # 유틸리티 함수
+```
+
+각 서비스(`stibee`, `inblog`, `cms`, `jira`)는 독립적인 폴더로 관리되며, `api/index.ts`에서 통합 라우팅을 담당합니다.
+
 ## 참고 문서
 
 - [요구사항 정의서](./documentoc/atsignal-요구사항정의서-초안.md)
 - [설계 문서](./document/atsignal-설계문서-초안.md)
 - [프로젝트 구조 v2](./document/atsignal-project-structure_v2.md)
-- [프로젝트 구조 v1](./document/atsignal-project-structure_v1.md)
 - [요구사항 정의서](./document/atsignal-요구사항정의서-초안.md)
 - [설계 문서](./document/atsignal-설계문서-초안.md)
 - [동적 페이지 구성 방식 정리](./document/AtSignal-동적페이지구성방식정리.md)
