@@ -1,8 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // 개발 모드에서는 output: 'export' 제거 (동적 라우트 정상 작동)
-  // 빌드 시에만 적용 (정적 사이트 생성)
-  ...(process.env.NODE_ENV === 'production' && { output: 'export' }),
+  // output: 'export' 제거 - Middleware를 사용하려면 정적 사이트 생성 모드 비활성화 필요
+  // Vercel에서는 Middleware가 Edge Functions로 실행되므로 output: 'export' 사용 불가
   images: {
     unoptimized: true,
   },
