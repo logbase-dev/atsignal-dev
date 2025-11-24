@@ -97,6 +97,39 @@
 - 키는 비밀저장소(Secrets Manager) 또는 Cloud Run 환경변수로 설정
 - HTTP 헤더에 `AccessToken: {STIBEE_API_KEY}` 포함
 
+## 필수 설정 값 확인 방법
+
+### STIBEE_API_KEY
+
+- Stibee 관리자 페이지 → 설정 → API 키 메뉴에서 확인
+- 워크스페이스 단위로 발급되는 API 키
+
+### STIBEE_LIST_ID (주소록 ID)
+
+Stibee에서 리스트 ID를 확인하는 방법:
+
+1. **주소록 관리 페이지에서 확인 (가장 일반적)**
+
+   - Stibee 관리자 페이지 로그인
+   - 좌측 메뉴에서 "주소록" 또는 "리스트" 클릭
+   - 사용할 주소록 선택
+   - 주소록 상세 페이지 URL에서 확인
+     - URL 예시: `https://stibee.com/lists/12345678`
+     - 여기서 `12345678`이 LIST_ID입니다.
+
+2. **브라우저 개발자 도구 사용**
+
+   - 주소록 관리 페이지 접속
+   - F12로 개발자 도구 열기
+   - Network 탭에서 API 호출 확인
+   - API 응답이나 요청 URL에서 `listId` 또는 `list_id` 확인
+
+3. **Stibee API로 확인**
+   - 인증 확인 엔드포인트: `GET https://api.stibee.com/v2/auth-check`
+   - 주소록 목록 조회 API 사용 (Stibee API 문서 참조)
+
+> **참고**: LIST_ID를 확인하지 못하는 경우 Stibee 고객지원에 문의하거나 API 문서를 참조하세요.
+
 ## 주요 엔드포인트 매핑 (v2 기준)
 
 - 구독자 추가
@@ -206,6 +239,41 @@ async function addSubscriber(listId, payload, apiKey) {
 ---
 
 # 7. 보안 및 환경 설정
+
+## 필수 환경변수 설정
+
+### 로컬 개발 환경
+
+`.env` 또는 `.env.local` 파일 생성:
+
+```env
+STIBEE_API_KEY=your_api_key_here
+STIBEE_LIST_ID=your_list_id_here
+```
+
+### Firebase Functions 배포 환경
+
+**방법 1: Firebase Functions Config 사용**
+
+```bash
+firebase functions:config:set \
+  stibee.api_key="your_api_key" \
+  stibee.list_id="your_list_id"
+```
+
+**방법 2: 환경변수 사용 (권장)**
+
+```bash
+firebase functions:secrets:set STIBEE_API_KEY
+firebase functions:secrets:set STIBEE_LIST_ID
+```
+
+### 선택 환경변수
+
+- `STIBEE_API_BASE_URL`: 기본값 `https://api.stibee.com/v2` (변경 필요 시에만 설정)
+- `SUBSCRIBERS_COLLECTION`: 기본값 `subscribers` (Firestore 컬렉션명 변경 필요 시에만 설정)
+
+## 보안 정책
 
 - **API Key 보관**: GCP Secret Manager / AWS Secrets Manager 사용 권장
 - **네트워크**: HTTPS 강제

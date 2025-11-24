@@ -936,6 +936,8 @@ body {
   border-radius: 0.5rem;
   text-decoration: none;
   transition: background 0.2s;
+  border: none; /* 추가 */
+  outline: none; /* 포커스 시 테두리 제거 (선택사항) */
 }
 
 .not-found-button:hover {
@@ -1381,7 +1383,7 @@ body {
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  animation: fadeOut 0.5s ease-out 3s forwards;
+  /* animation: fadeOut 0.5s ease-out 3s forwards; */
 }
 
 .splash-content {
@@ -1395,6 +1397,14 @@ body {
   max-width: 400px;
   width: 100%;
   height: auto;
+}
+
+.splash-video {
+  max-width: 100%;
+  max-height: 100vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
 }
 
 .splash-blue-bar {
