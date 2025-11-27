@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation';
 
 export default function NotFound() {
   const router = useRouter();
-
+  
   const handleGoBack = () => {
     router.back();
   };
-
+    
   return (
     <div className="not-found">
       <div>
@@ -21,12 +21,12 @@ export default function NotFound() {
           요청하신 페이지가 존재하지 않습니다.
         </p>
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-          <Link
-            href="/"
-            className="not-found-button"
-          >
+        <Link
+          href="/"
+          className="not-found-button"
+        >
             홈으로 돌아가기
-          </Link>
+        </Link>
           <button
             onClick={handleGoBack}
             className="not-found-button"

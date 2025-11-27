@@ -9,6 +9,7 @@
   "scripts": {
     "build:web": "cd apps/web && npm run build",
     "build:docs": "cd apps/docs && npm run build",
+    "build:admin": "cd apps/admin && npm run build",
     "build:support": "cd apps/support && npm run build",
     "build:app": "cd apps/app && npm run build",
     "build:functions": "cd functions && npm run build",

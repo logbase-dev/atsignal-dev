@@ -1996,3 +1996,139 @@ body {
     padding-left: 1.25rem;
   }
 }
+
+/* TOC (Table of Contents) Styles */
+.page-renderer-wrapper {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+}
+
+@media (min-width: 1024px) {
+  .page-renderer-wrapper {
+    grid-template-columns: 1fr 240px;
+    gap: 4rem;
+  }
+}
+
+.page-renderer-content {
+  max-width: 720px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.page-renderer-toc {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .page-renderer-toc {
+    display: block;
+    position: sticky;
+    top: 6rem;
+    align-self: start;
+    height: fit-content;
+    max-height: calc(100vh - 8rem);
+    overflow-y: auto;
+  }
+}
+
+.toc-container {
+  padding: 0.5rem 0;
+}
+
+.toc-header {
+  margin-bottom: 1rem;
+}
+
+.toc-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.toc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.toc-item {
+  margin: 0;
+  padding: 0;
+}
+
+.toc-link {
+  display: block;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  text-decoration: none;
+  border-radius: 0.375rem;
+  transition: all 0.2s;
+  line-height: 1.5;
+}
+
+.toc-link:hover {
+  color: #111827;
+  background-color: #f3f4f6;
+}
+
+.toc-item.toc-active .toc-link {
+  color: #2563eb;
+  font-weight: 500;
+  background-color: #eff6ff;
+}
+
+.toc-level-1 {
+  padding-left: 0;
+}
+
+.toc-level-2 {
+  padding-left: 0.75rem;
+}
+
+.toc-level-3 {
+  padding-left: 1.5rem;
+}
+
+.toc-level-4 {
+  padding-left: 2.25rem;
+}
+
+.toc-level-5 {
+  padding-left: 3rem;
+}
+
+.toc-level-6 {
+  padding-left: 3.75rem;
+}
+
+/* Dark mode support for TOC */
+@media (prefers-color-scheme: dark) {
+  .toc-title {
+    color: #9ca3af;
+  }
+
+  .toc-link {
+    color: #9ca3af;
+  }
+
+  .toc-link:hover {
+    color: #f3f4f6;
+    background-color: #374151;
+  }
+
+  .toc-item.toc-active .toc-link {
+    color: #60a5fa;
+    background-color: #1e3a8a;
+  }
+}

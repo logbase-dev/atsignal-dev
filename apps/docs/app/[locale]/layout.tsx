@@ -1,20 +1,61 @@
-import type { Metadata } from "next";
-import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
-import "../globals.css";
 import { notFound } from "next/navigation";
 import { validLocales } from "@/lib/i18n/getLocale";
+import { getMenusByLocale } from "@/lib/cms/getMenus";
+import Header from "@/components/Header";
 
-export const metadata: Metadata = {
-  title: "AtSignal Docs - 문서",
-  description: "AtSignal 문서 사이트",
-};
+export function generateStaticParams() {
+  return [
+    { locale: 'ko' },
+    { locale: 'en' },
+  ];
+}
 
 interface LocaleLayoutProps {
   children: React.ReactNode;
   params: Promise<{
     locale: string;
   }>;
+}
+
+// 메뉴 트리 구조 생성 헬퍼 함수
+function buildMenuTree(menus: any[]): any[] {
+  const menuMap = new Map<string, any>();
+  const roots: any[] = [];
+
+  // 모든 메뉴를 맵에 저장
+  menus.forEach(menu => {
+    if (menu.id) {
+      menuMap.set(menu.id, { ...menu, children: [] });
+    }
+  });
+
+  // 트리 구조 생성
+  menus.forEach(menu => {
+    if (!menu.id) return;
+    
+    const node = menuMap.get(menu.id)!;
+    
+    if (menu.parentId && menu.parentId !== '0' && menuMap.has(menu.parentId)) {
+      const parent = menuMap.get(menu.parentId)!;
+      if (!parent.children) parent.children = [];
+      parent.children.push(node);
+    } else {
+      roots.push(node);
+    }
+  });
+
+  // 정렬
+  const sortNodes = (nodes: any[]) => {
+    nodes.sort((a, b) => (a.order || 0) - (b.order || 0));
+    nodes.forEach(node => {
+      if (node.children && node.children.length > 0) {
+        sortNodes(node.children);
+      }
+    });
+  };
+  
+  sortNodes(roots);
+  return roots;
 }
 
 export default async function LocaleLayout({ children, params }: LocaleLayoutProps) {
@@ -24,14 +65,29 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
     notFound();
   }
 
+  // Firestore에서 모든 메뉴 가져오기
+  const menus = await getMenusByLocale('docs', locale as 'ko' | 'en');
+  
+  // 트리 구조로 변환
+  const menuTree = buildMenuTree(menus);
+  
+  // 최상위 메뉴만 추출하고 하위 메뉴 정보 포함
+  const navItems = menuTree.map((menu: any) => ({
+    label: menu.label || menu.labels?.[locale] || menu.labels?.ko || '',
+    href: `/${locale}/${menu.path || ''}`,
+    children: menu.children && menu.children.length > 0 
+      ? menu.children.map((child: any) => ({
+          label: child.label || child.labels?.[locale] || child.labels?.ko || '',
+          href: `/${locale}/${child.path || ''}`,
+        }))
+      : undefined,
+  }));
+
   return (
-    <html lang={locale}>
-      <body
-        className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}
-      >
-        {children}
-      </body>
-    </html>
+    <>
+      <Header navItems={navItems} locale={locale as 'ko' | 'en'} />
+      {children}
+    </>
   );
 }
 
