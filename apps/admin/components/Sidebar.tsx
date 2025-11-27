@@ -1,0 +1,105 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+
+export default function Sidebar() {
+  const pathname = usePathname();
+
+  return (
+    <aside id="sidebar" className="sidebar">
+      <ul className="sidebar-nav" id="sidebar-nav">
+        <li className="nav-item">
+          <Link href="/" className={`nav-link ${pathname === '/' ? '' : 'collapsed'}`}>
+            <i className="bi bi-grid"></i>
+            <span>Dashboard</span>
+          </Link>
+        </li>
+
+        <li className="nav-item">
+          <a 
+            className={`nav-link ${pathname?.startsWith('/menus') ? '' : 'collapsed'}`}
+            data-bs-target="#menus-nav"
+            data-bs-toggle="collapse"
+            href="#"
+          >
+            <i className="bi bi-menu-button-wide"></i>
+            <span>메뉴 관리</span>
+            <i className="bi bi-chevron-down ms-auto"></i>
+          </a>
+          <ul 
+            id="menus-nav" 
+            className={`nav-content collapse ${pathname?.startsWith('/menus') ? 'show' : ''}`}
+            data-bs-parent="#sidebar-nav"
+          >
+            <li>
+              <Link 
+                href="/menus/web" 
+                className={pathname === '/menus/web' ? 'active' : ''}
+              >
+                <i className="bi bi-circle" ></i>
+                <span>Web 사이트</span>
+              </Link>
+            </li>
+            <li>
+              <Link 
+                href="/menus/docs"
+                className={pathname === '/menus/docs' ? 'active' : ''}
+              >
+                <i className="bi bi-circle"></i>
+                <span>Docs 사이트</span>
+              </Link>
+            </li>
+          </ul>
+        </li>
+
+        <li className="nav-item">
+          <a 
+            className={`nav-link ${pathname?.startsWith('/pages') ? '' : 'collapsed'}`}
+            data-bs-target="#pages-nav"
+            data-bs-toggle="collapse"
+            href="#"
+          >
+            <i className="bi bi-file-text"></i>
+            <span>페이지 관리</span>
+            <i className="bi bi-chevron-down ms-auto"></i>
+          </a>
+          <ul 
+            id="pages-nav" 
+            className={`nav-content collapse ${pathname?.startsWith('/pages') ? 'show' : ''}`}
+            data-bs-parent="#sidebar-nav"
+          >
+            <li>
+              <Link 
+                href="/pages/web"
+                className={pathname?.startsWith('/pages/web') ? 'active' : ''}
+              >
+                <i className="bi bi-circle"></i>
+                <span>Web 사이트</span>
+              </Link>
+            </li>
+            <li>
+              <Link 
+                href="/pages/docs"
+                className={pathname?.startsWith('/pages/docs') ? 'active' : ''}
+              >
+                <i className="bi bi-circle"></i>
+                <span>Docs 사이트</span>
+              </Link>
+            </li>
+          </ul>
+        </li>
+
+        <li className="nav-item">
+          <Link 
+            href="/blog" 
+            className={`nav-link ${pathname === '/blog' ? '' : 'collapsed'}`}
+          >
+            <i className="bi bi-journal-text"></i>
+            <span>블로그 관리</span>
+          </Link>
+        </li>
+      </ul>
+    </aside>
+  );
+}
