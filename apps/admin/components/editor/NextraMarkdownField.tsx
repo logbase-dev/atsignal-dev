@@ -105,7 +105,7 @@ function markdownToHtml(markdown: string) {
 
       if (/^```/.test(block)) {
         const code = block.replace(/^```.*\n?/, '').replace(/```$/, '');
-        return `<pre style="background:#0f172a;color:#f8fafc;padding:1rem;border-radius:0.75rem;overflow:auto;"><code>${escapeHtml(
+        return `<pre style="background:#f3f4f6;border:1px solid #d1d5db;color:#111827;padding:1rem;border-radius:0.75rem;overflow:auto;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace;font-size:0.875rem;line-height:1.5;"><code>${escapeHtml(
           code,
         )}</code></pre>`;
       }

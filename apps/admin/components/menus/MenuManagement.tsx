@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { getMenus, createMenu, updateMenu, deleteMenu } from '@/lib/admin/menuService';
+import { getPagesByMenuId } from '@/lib/admin/pageService';
 import { buildMenuTree, reorderMenusInSameLevel, moveMenuToNewParent, type MenuNode } from '@/utils/menuTree';
 import { MenuTree } from './MenuTree';
 import { MenuModal } from './MenuModal';
@@ -75,8 +76,35 @@ export function MenuManagement({ site, title }: MenuManagementProps) {
       return;
     }
 
-    // 삭제 확인
-    if (!confirm('정말 삭제하시겠습니까?')) {
+    // 삭제할 메뉴 정보 가져오기
+    const menuToDelete = menus.find(m => m.id === id);
+    const menuName = menuToDelete?.labels.ko || '메뉴';
+
+    // 연결된 페이지 확인
+    try {
+      const connectedPages = await getPagesByMenuId(id);
+      
+      if (connectedPages.length > 0) {
+        // 연결된 페이지가 있으면 바로 페이지 삭제 확인 메시지 (첫 번째 경고창 없이)
+        const pageTitles = connectedPages.map(page => {
+          const title = page.labelsLive?.ko || page.labelsDraft?.ko || '제목 없음';
+          return `(페이지 제목: ${title})`;
+        }).join('\n');
+        
+        const message = `메뉴에 연결된 페이지가 있습니다. 페이지도 같이 삭제하시겠습니까?\n\n${pageTitles}`;
+        
+        if (!confirm(message)) {
+          return;
+        }
+      } else {
+        // 연결된 페이지가 없으면 메뉴명 포함 확인 메시지
+        if (!confirm(`"${menuName}" 메뉴를 삭제하시겠습니까?`)) {
+          return;
+        }
+      }
+    } catch (error) {
+      console.error('Failed to check connected pages:', error);
+      alert('연결된 페이지를 확인하는데 실패했습니다.');
       return;
     }
 
@@ -98,10 +126,14 @@ export function MenuManagement({ site, title }: MenuManagementProps) {
         ? Math.max(...siblings.map(m => m.order)) + 1 
         : 1;
       
+      // 부모 경로를 자동으로 설정 (최상위가 아닌 경우)
+      const parentPath = parent.path || '';
+      const initialPath = parentPath ? `${parentPath}/` : '';
+      
       setEditingMenu({
         site: parent.site,
         labels: { ko: '', en: '' },
-        path: '',
+        path: initialPath, // 부모 경로 + '/' 자동 설정
         depth: parent.depth + 1,
         parentId,
         order: maxOrder,
@@ -117,15 +149,57 @@ export function MenuManagement({ site, title }: MenuManagementProps) {
   const handleToggleEnabled = async (id: string, locale: 'ko' | 'en') => {
     try {
       const menu = menus.find(m => m.id === id);
-      if (menu) {
+      if (!menu) return;
+
+      const newEnabledState = !menu.enabled[locale];
+      const childMenuIds = getChildMenuIds(id);
+
+      // 케이스 1: 자식 메뉴를 활성화하려고 할 때 부모가 비활성화인 경우
+      if (newEnabledState && menu.parentId && menu.parentId !== '0') {
+        const parent = menus.find(m => m.id === menu.parentId);
+        if (parent && !parent.enabled[locale]) {
+          alert(`부모 메뉴 "${parent.labels.ko}"가 비활성화되어 있어 자식 메뉴를 활성화할 수 없습니다.\n부모 메뉴를 먼저 활성화해주세요.`);
+          return;
+        }
+      }
+
+      // 케이스 2: 부모 메뉴를 비활성화할 때 → 모든 하위 메뉴도 비활성화
+      if (!newEnabledState && childMenuIds.length > 0) {
+        // 부모와 모든 하위 메뉴 업데이트
+        const updatePromises = [
+          updateMenu(id, {
+            enabled: {
+              ...menu.enabled,
+              [locale]: false,
+            },
+          }),
+          // 모든 하위 메뉴 비활성화
+          ...childMenuIds.map(childId => {
+            const childMenu = menus.find(m => m.id === childId);
+            if (childMenu && childMenu.enabled[locale]) {
+              return updateMenu(childId, {
+                enabled: {
+                  ...childMenu.enabled,
+                  [locale]: false,
+                },
+              });
+            }
+            return Promise.resolve();
+          }),
+        ];
+        await Promise.all(updatePromises);
+      } else {
+        // 케이스 3: 부모 메뉴를 활성화할 때 → 자식은 그대로 유지 (변경 없음)
+        // 케이스 4: 자식 메뉴를 비활성화할 때 → 단순 토글
         await updateMenu(id, {
           enabled: {
             ...menu.enabled,
-            [locale]: !menu.enabled[locale],
+            [locale]: newEnabledState,
           },
         });
-        await loadMenus();
       }
+
+      await loadMenus();
     } catch (error) {
       console.error('Failed to toggle menu enabled:', error);
       alert('상태 변경에 실패했습니다.');

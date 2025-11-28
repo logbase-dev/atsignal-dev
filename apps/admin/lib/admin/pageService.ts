@@ -138,6 +138,15 @@ export async function publishPage(
   });
 }
 
+export async function getPagesByMenuId(menuId: string): Promise<Page[]> {
+  const database = getDb();
+  const pagesRef = collection(database, 'pages');
+  const q = query(pagesRef, where('menuId', '==', menuId));
+  
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(mapPageData);
+}
+
 export async function deletePage(id: string): Promise<void> {
   const database = getDb();
   const pageRef = doc(database, 'pages', id);

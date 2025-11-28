@@ -5,7 +5,7 @@ export default function Footer() {
         &copy; Copyright <strong><span>AtSignal</span></strong>. All Rights Reserved
       </div>
       <div className="credits">
-        Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
+        Designed by <a href="/">AtSignal</a>
       </div>
     </footer>
   );

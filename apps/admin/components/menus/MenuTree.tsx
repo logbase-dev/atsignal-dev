@@ -323,9 +323,7 @@ function SortableMenuTreeNode({
           </button>
           <button 
             onClick={() => {
-              if (confirm(`"${node.labels.ko}" 메뉴를 삭제하시겠습니까?`)) {
-                onDelete(node.id!);
-              }
+              onDelete(node.id!); // confirm 제거, 모든 확인 로직은 MenuManagement의 handleDelete에서 처리
             }}
             style={{ 
               padding: '0.25rem 0.5rem', 

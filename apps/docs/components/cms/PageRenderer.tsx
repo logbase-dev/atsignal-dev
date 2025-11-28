@@ -66,6 +66,39 @@ export default function PageRenderer({ title, content, updatedAt, isPreview }: P
               h6: ({ node, ...props }) => (
                 <h6 id={props.id} style={{ scrollMarginTop: '100px' }} {...props} />
               ),
+              pre: ({ node, ...props }) => (
+                <pre
+                  {...props}
+                  style={{
+                    background: '#f3f4f6',
+                    border: '1px solid #d1d5db',
+                    color: '#111827',
+                    padding: '1rem',
+                    borderRadius: '0.75rem',
+                    overflow: 'auto',
+                    fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+                    fontSize: '0.875rem',
+                    lineHeight: 1.5,
+                    margin: '1rem 0',
+                  }}
+                />
+              ),
+              code: ({ node, inline, ...props }: any) => {
+                if (inline) {
+                  return (
+                    <code
+                      {...props}
+                      style={{
+                        background: '#e2e8f0',
+                        padding: '0.1rem 0.35rem',
+                        borderRadius: '0.35rem',
+                        fontSize: '0.875em',
+                      }}
+                    />
+                  );
+                }
+                return <code {...props} />;
+              },
             }}
           >
             {content || '콘텐츠가 아직 준비되지 않았습니다.'}

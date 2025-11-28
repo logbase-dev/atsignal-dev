@@ -137,6 +137,18 @@ export async function deleteMenu(id: string): Promise<void> {
   }
 
   try {
+    // 연결된 페이지 확인 및 삭제
+    const pagesRef = collection(db, 'pages');
+    const pagesQuery = query(pagesRef, where('menuId', '==', id));
+    const pagesSnapshot = await getDocs(pagesQuery);
+    
+    // 연결된 모든 페이지 삭제
+    const deletePagePromises = pagesSnapshot.docs.map((pageDoc) => {
+      return withTimeout(deleteDoc(doc(db, 'pages', pageDoc.id)), 3000);
+    });
+    await Promise.all(deletePagePromises);
+    
+    // 메뉴 삭제
     const menuRef = doc(db, 'menus', id);
     await withTimeout(deleteDoc(menuRef), 3000);
   } catch (error: any) {
