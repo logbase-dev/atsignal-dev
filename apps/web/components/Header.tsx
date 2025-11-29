@@ -77,7 +77,7 @@ export default function Header() {
                           {child.children.map((grandchild) => (
                             <Link
                               key={grandchild.path}
-                              href={pathToUrl(grandchild.path)}
+                              href={pathToUrl(grandchild.path, locale)}
                               className="dropdown-link"
                             >
                               {grandchild.name}
@@ -90,7 +90,7 @@ export default function Header() {
                   return (
                     <Link
                       key={child.path}
-                      href={pathToUrl(child.path)}
+                      href={pathToUrl(child.path, locale)}
                       className="dropdown-item"
                     >
                       {child.name}
@@ -106,7 +106,7 @@ export default function Header() {
       return (
         <Link
           key={node.path}
-          href={pathToUrl(node.path)}
+          href={pathToUrl(node.path, locale)}
           className="nav-link"
         >
           {node.name}
@@ -119,7 +119,7 @@ export default function Header() {
     <header className="header">
       <div className="header-container">
         <div className="header-content">
-          <Link href="/" className="logo">
+          <Link href={`/${locale}`} className="logo">
             <img
               src="/images/logo.svg"
               alt="AtSignal"
@@ -133,7 +133,7 @@ export default function Header() {
 
           <div>
             <Link
-              href={pathToUrl("/Pricing/Contact Sales")}
+              href={pathToUrl("/Pricing/Contact Sales", locale)}
               className="cta-button"
             >
               {contactCta}

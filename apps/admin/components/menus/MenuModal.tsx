@@ -10,6 +10,7 @@ interface MenuModalProps {
   onSubmit: (menuData: {
     labels: { ko: string; en?: string };
     path: string;
+    isExternal?: boolean;
     depth: number;
     parentId: string;
     order: number;
@@ -32,6 +33,7 @@ export function MenuModal({
     labelKo: '',
     labelEn: '',
     path: '',
+    isExternal: false,
     depth: 1,
     parentId: '0', // 최상위 메뉴는 "0"
     order: 1,
@@ -51,8 +53,9 @@ export function MenuModal({
   }, [parentMenus]);
 
   useEffect(() => {
-    // 모달이 열릴 때 수동 수정 플래그 초기화
+    // 모달이 열릴 때 수동 수정 플래그 및 경고 초기화
     setPathManuallyEdited(false);
+    setPathError('');
     
     if (initialMenu) {
       // 수정 모드
@@ -61,6 +64,7 @@ export function MenuModal({
           labelKo: initialMenu.labels.ko,
           labelEn: initialMenu.labels.en || '',
           path: initialMenu.path,
+          isExternal: initialMenu.isExternal || false,
           depth: initialMenu.depth,
           parentId: initialMenu.parentId || '0',
           order: initialMenu.order,
@@ -81,6 +85,7 @@ export function MenuModal({
           labelKo: '',
           labelEn: '',
           path: initialPath, // 부모 경로 자동 설정
+          isExternal: false,
           depth: initialMenu.depth,
           parentId: parentId,
           order: initialMenu.order || maxOrder,
@@ -99,6 +104,7 @@ export function MenuModal({
         labelKo: '',
         labelEn: '',
         path: '', // 최상위 메뉴는 경로 비움
+        isExternal: false,
         depth: 1,
         parentId: '0',
         order: maxOrder,
@@ -113,14 +119,27 @@ export function MenuModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // 최종 경로 검증 (부모 경로의 슬래시 제거 후 검증)
-    const finalPath = formData.path.endsWith('/') ? formData.path.slice(0, -1) : formData.path;
-    const finalError = validatePath(finalPath);
+    // 외부 링크가 아닌 경우에만 경로 검증 및 중복 체크
+    if (!formData.isExternal) {
+      const finalPath = formData.path.endsWith('/') ? formData.path.slice(0, -1) : formData.path;
+      const formatError = validatePath(finalPath);
+      const duplicateError = formatError ? '' : checkPathDuplicate(finalPath);
+      
+      if (formatError || duplicateError) {
+        setPathError(formatError || duplicateError);
+        alert('경로 형식이 올바르지 않거나 이미 사용 중인 경로입니다. 경로를 확인해주세요.');
+        return;
+      }
+    }
     
-    if (finalError) {
-      setPathError(finalError);
-      alert('경로 형식이 올바르지 않습니다. 경로를 확인해주세요.');
-      return;
+    // 외부 링크인 경우 URL 검증
+    if (formData.isExternal && formData.path) {
+      const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+      if (!urlPattern.test(formData.path) && !formData.path.startsWith('http://') && !formData.path.startsWith('https://')) {
+        setPathError('올바른 URL 형식을 입력하세요. (예: https://docs.example.com/admin/test)');
+        alert('URL 형식이 올바르지 않습니다. URL을 확인해주세요.');
+        return;
+      }
     }
     
     try {
@@ -129,7 +148,8 @@ export function MenuModal({
           ko: formData.labelKo,
           en: formData.labelEn || undefined, // 빈 문자열이면 undefined
         },
-        path: finalPath, // 슬래시 제거된 경로 사용
+        path: formData.isExternal ? formData.path : (formData.path.endsWith('/') ? formData.path.slice(0, -1) : formData.path),
+        isExternal: formData.isExternal,
         depth: formData.depth,
         parentId: formData.parentId || '0',
         order: formData.order,
@@ -176,6 +196,39 @@ export function MenuModal({
     return '';
   };
 
+  // 경로 중복 체크 함수
+  const checkPathDuplicate = (path: string): string => {
+    if (!path || formData.isExternal) {
+      return ''; // 외부 링크는 중복 체크 불필요
+    }
+    
+    // 슬래시 제거하여 정규화
+    const normalizedPath = path.endsWith('/') ? path.slice(0, -1) : path;
+    if (!normalizedPath) return '';
+    
+    // 같은 사이트의 기존 메뉴들 중에서 중복 확인
+    const existingMenus = parentMenus.filter((menu) => {
+      // 현재 수정 중인 메뉴는 제외
+      if (initialMenu?.id && menu.id === initialMenu.id) {
+        return false;
+      }
+      // 같은 사이트의 메뉴만 확인
+      return menu.site === site && !menu.isExternal;
+    });
+    
+    // 중복 체크
+    const duplicate = existingMenus.find((menu) => {
+      const existingPath = menu.path.endsWith('/') ? menu.path.slice(0, -1) : menu.path;
+      return existingPath === normalizedPath;
+    });
+    
+    if (duplicate) {
+      return `이미 사용 중인 경로입니다. (메뉴: ${duplicate.labels.ko}${duplicate.labels.en ? ` / ${duplicate.labels.en}` : ''})`;
+    }
+    
+    return '';
+  };
+
   // 영문 메뉴명을 경로 형식으로 변환하는 함수
   const convertLabelToPath = (label: string): string => {
     if (!label) return '';
@@ -202,8 +255,8 @@ export function MenuModal({
   const handleLabelEnChange = (value: string) => {
     setFormData({ ...formData, labelEn: value });
     
-    // 수정 모드이거나 경로를 수동으로 수정한 경우 자동 업데이트 안 함
-    if (initialMenu?.id || pathManuallyEdited) {
+    // 수정 모드이거나 경로를 수동으로 수정한 경우, 또는 외부 링크인 경우 자동 업데이트 안 함
+    if (initialMenu?.id || pathManuallyEdited || formData.isExternal) {
       return;
     }
     
@@ -217,14 +270,19 @@ export function MenuModal({
         const parentPath = parent?.path || '';
         const newPath = parentPath ? `${parentPath}/${convertedPath}` : convertedPath;
         
-        // 검증
-        const error = validatePath(newPath);
-        setPathError(error);
+        // 형식 검증
+        const formatError = validatePath(newPath);
+        // 중복 체크
+        const duplicateError = formatError ? '' : checkPathDuplicate(newPath);
+        
+        setPathError(formatError || duplicateError);
         setFormData(prev => ({ ...prev, labelEn: value, path: newPath }));
       } else {
         // 최상위 메뉴는 변환된 경로만
-        const error = validatePath(convertedPath);
-        setPathError(error);
+        const formatError = validatePath(convertedPath);
+        const duplicateError = formatError ? '' : checkPathDuplicate(convertedPath);
+        
+        setPathError(formatError || duplicateError);
         setFormData(prev => ({ ...prev, labelEn: value, path: convertedPath }));
       }
     } else {
@@ -246,20 +304,37 @@ export function MenuModal({
     // 경로를 수동으로 수정했다고 표시
     setPathManuallyEdited(true);
     
-    // 공백을 하이픈으로 자동 변환
-    let sanitizedPath = value.replace(/\s+/g, '-');
-    
-    // 대문자를 소문자로 변환
-    sanitizedPath = sanitizedPath.toLowerCase();
-    
-    // 슬래시로 끝나는 경우는 부모 경로 자동 설정이므로 허용
-    const allowTrailingSlash = sanitizedPath.endsWith('/');
-    
-    // 검증
-    const error = validatePath(sanitizedPath, allowTrailingSlash);
-    setPathError(error);
-    
-    setFormData({ ...formData, path: sanitizedPath });
+    if (formData.isExternal) {
+      // 외부 링크인 경우 URL 검증
+      const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+      if (value && !urlPattern.test(value) && !value.startsWith('http://') && !value.startsWith('https://')) {
+        setPathError('올바른 URL 형식을 입력하세요. (예: https://docs.example.com/admin/test)');
+      } else {
+        setPathError('');
+      }
+      setFormData({ ...formData, path: value });
+    } else {
+      // 기존 로직 (상대 경로)
+      // 공백을 하이픈으로 자동 변환
+      let sanitizedPath = value.replace(/\s+/g, '-');
+      
+      // 대문자를 소문자로 변환
+      sanitizedPath = sanitizedPath.toLowerCase();
+      
+      // 슬래시로 끝나는 경우는 부모 경로 자동 설정이므로 허용
+      const allowTrailingSlash = sanitizedPath.endsWith('/');
+      
+      // 경로 형식 검증
+      const formatError = validatePath(sanitizedPath, allowTrailingSlash);
+      
+      // 중복 체크 (형식 검증 통과 시에만)
+      const duplicateError = formatError ? '' : checkPathDuplicate(sanitizedPath);
+      
+      // 에러 우선순위: 형식 에러 > 중복 에러
+      setPathError(formatError || duplicateError);
+      
+      setFormData({ ...formData, path: sanitizedPath });
+    }
   };
 
   // 부모 선택 시 depth 자동 계산 및 경로 자동 설정
@@ -360,18 +435,34 @@ export function MenuModal({
           </div>
 
           <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-              경로 <span style={{ color: '#dc3545' }}>*</span>
-            </label>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+              <label style={{ fontWeight: 'bold' }}>
+                경로 <span style={{ color: '#dc3545' }}>*</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={formData.isExternal}
+                  onChange={(e) => {
+                    setFormData({ ...formData, isExternal: e.target.checked, path: '' });
+                    setPathError('');
+                  }}
+                  style={{ width: '1rem', height: '1rem', cursor: 'pointer' }}
+                />
+                <span style={{ fontSize: '0.9rem' }}>외부 링크</span>
+              </label>
+            </div>
             <small style={{ color: '#666', display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
-              URL 경로입니다. 영문 소문자, 숫자, 하이픈(-), 언더스코어(_)만 사용하세요. 공백은 자동으로 하이픈으로 변환됩니다. (예: product 또는 product/log-collecting)
+              {formData.isExternal 
+                ? '외부 URL을 입력하세요. (예: https://docs.atsignal.io/ko/admin)' 
+                : 'URL 경로입니다. 영문 소문자, 숫자, 하이픈(-), 언더스코어(_)만 사용하세요. 공백은 자동으로 하이픈으로 변환됩니다. (예: product 또는 product/log-collecting)'}
             </small>
             <input
               type="text"
               value={formData.path}
               onChange={(e) => handlePathChange(e.target.value)}
               required
-              placeholder="예: product/log-collecting"
+              placeholder={formData.isExternal ? '예: https://docs.atsignal.io/ko/admin' : '예: product/log-collecting'}
               style={{ 
                 width: '100%', 
                 padding: '0.5rem', 

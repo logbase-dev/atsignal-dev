@@ -2,9 +2,16 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
 import type { Page, Site } from '@/lib/admin/types';
 import type { MenuOption, PageFormValues } from '@/src/features/pages/types';
 import { NextraMarkdownField } from '@/components/editor/NextraMarkdownField';
+
+// SSR 비활성화하여 동적 import
+const ToastMarkdownEditor = dynamic(
+  () => import('@/components/editor/ToastMarkdownEditor').then((mod) => ({ default: mod.ToastMarkdownEditor })),
+  { ssr: false }
+);
 
 interface PageEditorFormProps {
   site: Site;
@@ -99,6 +106,8 @@ export function PageEditorForm({
     contentEn: '',
   });
   const [activeContentLocale, setActiveContentLocale] = useState<'ko' | 'en'>('ko');
+  const [editorType, setEditorType] = useState<'nextra' | 'toast'>('toast');
+  const [saveFormat, setSaveFormat] = useState<'markdown' | 'html'>('markdown');
   const [previewing, setPreviewing] = useState(false);
 
   const lastPublishedAt = useMemo(() => {
@@ -298,7 +307,32 @@ export function PageEditorForm({
       </div>
 
       <div style={sectionStyle}>
-        <h2 style={{ marginTop: 0, marginBottom: '1rem' }}>콘텐츠</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h2 style={{ margin: 0 }}>콘텐츠</h2>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.85rem', color: '#6b7280' }}>에디터 타입:</span>
+            <select
+              value={editorType}
+              onChange={(e) => {
+                const newType = e.target.value as 'nextra' | 'toast';
+                if (window.confirm('에디터를 전환하면 현재 입력된 내용이 그대로 유지됩니다. 계속하시겠습니까?')) {
+                  setEditorType(newType);
+                }
+              }}
+              style={{
+                padding: '0.5rem 1rem',
+                borderRadius: '0.5rem',
+                border: '1px solid #d1d5db',
+                fontSize: '0.9rem',
+                backgroundColor: '#fff',
+                cursor: 'pointer',
+              }}
+            >
+              <option value="toast">TOAST UI Editor</option>
+              <option value="nextra">Nextra</option>
+            </select>
+          </div>
+        </div>
         <div style={contentTabWrapperStyle}>
           <button
             type="button"
@@ -317,24 +351,58 @@ export function PageEditorForm({
         </div>
         <div style={{ marginTop: '1.25rem' }}>
           {activeContentLocale === 'ko' ? (
-            <NextraMarkdownField
-              id="content-ko"
-              label="콘텐츠 (한국어)"
-              locale="ko"
-              required
-              helperText="한글 페이지 본문입니다. Markdown 또는 MDX 형식으로 작성하세요."
-              value={formState.contentKo}
-              onChange={(next) => setFormState((prev) => ({ ...prev, contentKo: next }))}
-            />
+            editorType === 'nextra' ? (
+              <NextraMarkdownField
+                id="content-ko"
+                label="콘텐츠 (한국어)"
+                locale="ko"
+                required
+                helperText="한글 페이지 본문입니다. Markdown 또는 MDX 형식으로 작성하세요."
+                value={formState.contentKo}
+                onChange={(next) => setFormState((prev) => ({ ...prev, contentKo: next }))}
+              />
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <label style={{ fontSize: '0.95rem', fontWeight: 600 }}>
+                  콘텐츠 (한국어) <span style={{ color: '#dc2626' }}>*</span>
+                </label>
+                <p style={{ fontSize: '0.85rem', color: '#6b7280', margin: 0 }}>
+                  한글 페이지 본문입니다. Markdown 형식으로 작성하세요.
+                </p>
+                <ToastMarkdownEditor
+                  value={formState.contentKo}
+                  onChange={(next) => setFormState((prev) => ({ ...prev, contentKo: next }))}
+                  saveFormat={saveFormat}
+                  onSaveFormatChange={setSaveFormat}
+                />
+              </div>
+            )
           ) : (
-            <NextraMarkdownField
-              id="content-en"
-              label="콘텐츠 (영어)"
-              locale="en"
-              helperText="영문 페이지 본문입니다."
-              value={formState.contentEn}
-              onChange={(next) => setFormState((prev) => ({ ...prev, contentEn: next }))}
-            />
+            editorType === 'nextra' ? (
+              <NextraMarkdownField
+                id="content-en"
+                label="콘텐츠 (영어)"
+                locale="en"
+                helperText="영문 페이지 본문입니다. Markdown 또는 MDX 형식으로 작성하세요."
+                value={formState.contentEn}
+                onChange={(next) => setFormState((prev) => ({ ...prev, contentEn: next }))}
+              />
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <label style={{ fontSize: '0.95rem', fontWeight: 600 }}>
+                  콘텐츠 (영어)
+                </label>
+                <p style={{ fontSize: '0.85rem', color: '#6b7280', margin: 0 }}>
+                  영문 페이지 본문입니다. Markdown 형식으로 작성하세요.
+                </p>
+                <ToastMarkdownEditor
+                  value={formState.contentEn}
+                  onChange={(next) => setFormState((prev) => ({ ...prev, contentEn: next }))}
+                  saveFormat={saveFormat}
+                  onSaveFormatChange={setSaveFormat}
+                />
+              </div>
+            )
           )}
         </div>
       </div>

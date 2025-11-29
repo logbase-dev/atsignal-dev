@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { validLocales } from "@/lib/i18n/getLocale";
 import { getMenusByLocale } from "@/lib/cms/getMenus";
+import { getSearchIndex } from "@/lib/cms/getSearchIndex";
 import Header from "@/components/Header";
 
 export function generateStaticParams() {
@@ -71,21 +72,30 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   // 트리 구조로 변환
   const menuTree = buildMenuTree(menus);
   
+  // 검색 인덱스 가져오기
+  const searchIndex = await getSearchIndex('docs');
+  
   // 최상위 메뉴만 추출하고 하위 메뉴 정보 포함
   const navItems = menuTree.map((menu: any) => ({
     label: menu.label || menu.labels?.[locale] || menu.labels?.ko || '',
-    href: `/${locale}/${menu.path || ''}`,
+    href: menu.isExternal ? menu.path : `/${locale}/${menu.path || ''}`,
+    isExternal: menu.isExternal,
     children: menu.children && menu.children.length > 0 
       ? menu.children.map((child: any) => ({
           label: child.label || child.labels?.[locale] || child.labels?.ko || '',
-          href: `/${locale}/${child.path || ''}`,
+          href: child.isExternal ? child.path : `/${locale}/${child.path || ''}`,
+          isExternal: child.isExternal,
         }))
       : undefined,
   }));
 
   return (
     <>
-      <Header navItems={navItems} locale={locale as 'ko' | 'en'} />
+      <Header 
+        navItems={navItems} 
+        locale={locale as 'ko' | 'en'} 
+        searchIndex={searchIndex}
+      />
       {children}
     </>
   );

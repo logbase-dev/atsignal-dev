@@ -1,9 +1,11 @@
 import Link from 'next/link';
 import { MenuItem } from '@/types/menu';
 import { getChildrenByPrefix, pathToUrl } from '@/utils/menu';
+import { defaultLocale, Locale } from '@/lib/i18n/getLocale';
 
 interface PageRendererProps {
   item: MenuItem;
+  locale?: Locale;
 }
 
 // 벌크 데이터 생성 함수들
@@ -120,7 +122,7 @@ function generateBenefits(item: MenuItem): string[] {
   ];
 }
 
-export default function PageRenderer({ item }: PageRendererProps) {
+export default function PageRenderer({ item, locale = defaultLocale }: PageRendererProps) {
   const children = getChildrenByPrefix(item.fullPath);
   const hasChildren = children.length > 0;
   const features = generateFeatures(item);
@@ -150,11 +152,11 @@ export default function PageRenderer({ item }: PageRendererProps) {
                   공식 문서 보기
                 </a>
               ) : (
-                <Link href={pathToUrl("/Pricing/Contact Sales")} className="btn-primary">
+                <Link href={pathToUrl("/Pricing/Contact Sales", locale)} className="btn-primary">
                   무료 체험 시작하기
                 </Link>
               )}
-              <Link href={pathToUrl("/Pricing/Information")} className="btn-secondary">
+              <Link href={pathToUrl("/Pricing/Information", locale)} className="btn-secondary">
                 가격 정보
               </Link>
             </div>
@@ -258,7 +260,7 @@ export default function PageRenderer({ item }: PageRendererProps) {
                 <div key={child.fullPath} className="card">
                   <h3 className="card-title">{child.name}</h3>
                   <p className="card-description">{child.description}</p>
-                  <Link href={pathToUrl(child.fullPath)} className="card-link">
+                  <Link href={pathToUrl(child.fullPath, locale)} className="card-link">
                     자세히 보기 →
                   </Link>
                 </div>

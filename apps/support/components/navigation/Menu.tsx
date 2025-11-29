@@ -10,11 +10,22 @@ export default async function Menu({ locale }: MenuProps) {
 
   return (
     <nav>
-      {menus.map((menu: any) => (
-        <Link key={menu.id} href={`/${locale}/${menu.path}`}>
-          {menu.label}
-        </Link>
-      ))}
+      {menus.map((menu: any) => 
+        menu.isExternal ? (
+          <a 
+            key={menu.id} 
+            href={menu.path} 
+            target="_blank" 
+            rel="noopener noreferrer"
+          >
+            {menu.label}
+          </a>
+        ) : (
+          <Link key={menu.id} href={`/${locale}/${menu.path}`}>
+            {menu.label}
+          </Link>
+        )
+      )}
     </nav>
   );
 }

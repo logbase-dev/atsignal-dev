@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { MenuNode } from '@/types/menu';
 import { buildMenuTree, pathToUrl } from '@/utils/menu';
+import { getLocaleFromPath } from '@/lib/i18n/getLocale';
 
 interface NavigationProps {
   className?: string;
@@ -12,6 +14,8 @@ interface NavigationProps {
 export default function Navigation({ className = '' }: NavigationProps) {
   const [openMenus, setOpenMenus] = useState<Set<string>>(new Set());
   const menuTree = buildMenuTree();
+  const pathname = usePathname();
+  const locale = getLocaleFromPath(pathname);
 
   const toggleMenu = (path: string) => {
     const newOpenMenus = new Set(openMenus);
@@ -53,7 +57,7 @@ export default function Navigation({ className = '' }: NavigationProps) {
       return (
         <Link
           key={node.path}
-          href={pathToUrl(node.path)}
+          href={pathToUrl(node.path, locale)}
           className={`block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors ${indentClass}`}
         >
           {node.name}
@@ -65,7 +69,7 @@ export default function Navigation({ className = '' }: NavigationProps) {
   return (
     <nav className={`bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 ${className}`}>
       <div className="p-4">
-        <Link href="/" className="block mb-6">
+        <Link href={`/${locale}`} className="block mb-6">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">AtSignal</h1>
         </Link>
         <div className="space-y-1">

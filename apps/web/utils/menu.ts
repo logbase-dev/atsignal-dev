@@ -1,5 +1,6 @@
 import { MenuItem, MenuNode } from '@/types/menu';
 import { menuData } from '@/data/menu';
+import { defaultLocale, isValidLocale } from '@/lib/i18n/getLocale';
 
 function normalizePath(input: string): string {
   if (!input) return '/';
@@ -176,10 +177,19 @@ export function getChildrenByPrefix(prefixPath: string): MenuItem[] {
 }
 
 // 경로를 URL-safe한 형태로 변환 (Next.js Link에서 사용)
-export function pathToUrl(path: string): string {
+export function pathToUrl(path: string, locale?: string): string {
   const normalized = normalizePath(path);
-  // 경로를 슬래시로 분리하고 각 부분을 인코딩
   const parts = normalized.split('/').filter(Boolean);
-  return '/' + parts.map(part => encodeURIComponent(part)).join('/');
+  const localeToUse = locale && isValidLocale(locale) ? locale : defaultLocale;
+
+  const hasLocalePrefix = parts.length > 0 && isValidLocale(parts[0]);
+  const finalParts =
+    parts.length === 0
+      ? [localeToUse]
+      : hasLocalePrefix
+      ? parts
+      : [localeToUse, ...parts];
+
+  return '/' + finalParts.map((part) => encodeURIComponent(part)).join('/');
 }
 

@@ -11,6 +11,7 @@ export interface Menu {
   site: Site;
   labels: LocalizedField;
   path: string;
+  isExternal?: boolean;  // 외부 링크 여부
   depth: number;
   parentId: string;  // "0" 또는 부모 ID
   order: number;

@@ -49,7 +49,7 @@ export default function Footer() {
         <div className="footer-content">
           {/* Logo and Description */}
           <div className="footer-brand">
-            <Link href="/" className="footer-logo">
+            <Link href={`/${locale}`} className="footer-logo">
               <img
                 src="/images/logo.svg"
                 alt="AtSignal"
@@ -68,7 +68,7 @@ export default function Footer() {
               <ul className="footer-link-list">
                 {footerLinks.product.map((link) => (
                   <li key={link.path}>
-                    <Link href={pathToUrl(link.path)} className="footer-link">
+                    <Link href={pathToUrl(link.path, locale)} className="footer-link">
                       {link.name}
                     </Link>
                   </li>
@@ -81,7 +81,7 @@ export default function Footer() {
               <ul className="footer-link-list">
                 {footerLinks.solutions.map((link) => (
                   <li key={link.path}>
-                    <Link href={pathToUrl(link.path)} className="footer-link">
+                    <Link href={pathToUrl(link.path, locale)} className="footer-link">
                       {link.name}
                     </Link>
                   </li>
@@ -94,7 +94,7 @@ export default function Footer() {
               <ul className="footer-link-list">
                 {footerLinks.resources.map((link) => (
                   <li key={link.path}>
-                    <Link href={pathToUrl(link.path)} className="footer-link">
+                    <Link href={pathToUrl(link.path, locale)} className="footer-link">
                       {link.name}
                     </Link>
                   </li>
@@ -107,7 +107,7 @@ export default function Footer() {
               <ul className="footer-link-list">
                 {footerLinks.company.map((link) => (
                   <li key={link.path}>
-                    <Link href={pathToUrl(link.path)} className="footer-link">
+                    <Link href={pathToUrl(link.path, locale)} className="footer-link">
                       {link.name}
                     </Link>
                   </li>
@@ -123,11 +123,11 @@ export default function Footer() {
             <p>© {currentYear} Nethru. All rights reserved.</p>
           </div>
           <div className="footer-legal">
-            <Link href="/Product/Security&Privacy" className="footer-legal-link">
+            <Link href={pathToUrl("/Product/Security&Privacy", locale)} className="footer-legal-link">
               Privacy Policy
             </Link>
             <span className="footer-separator">·</span>
-            <Link href="/Pricing/Contact Sales" className="footer-legal-link">
+            <Link href={pathToUrl("/Pricing/Contact Sales", locale)} className="footer-legal-link">
               Terms of Service
             </Link>
           </div>

@@ -219,21 +219,21 @@ export default function Home({ locale }: HomeProps) {
       id: 'log-collecting',
       title: 'Log Collecting',
       description: '다양한 디지털 채널에서 발생하는 사용자 행동 로그를 안정적으로 수집하고 표준화합니다. 웹, 모바일, 서버 등 모든 채널을 지원합니다.',
-      link: pathToUrl("/Product/Product@signal/Log Collecting"),
+      link: pathToUrl("/Product/Product@signal/Log Collecting", currentLocale),
       number: 1,
     },
     {
       id: 'analytics',
       title: 'Analytics',
       description: '사용자 여정, 퍼널, 리텐션, 캠페인 효과 등 다양한 관점에서 분석 리포트를 제공합니다. 실시간 대시보드로 즉각적인 인사이트를 확인하세요.',
-      link: pathToUrl("/Product/Product@signal/Analytics"),
+      link: pathToUrl("/Product/Product@signal/Analytics", currentLocale),
       number: 2,
     },
     {
       id: 'integrations',
       title: 'Integrations',
       description: '외부 BI, CDP, MMP, CRM 등 다양한 플랫폼과 연동하여 데이터 활용의 확장성을 높입니다. 50개 이상의 주요 플랫폼을 지원합니다.',
-      link: pathToUrl("/Product/Product@signal/Integration"),
+      link: pathToUrl("/Product/Product@signal/Integration", currentLocale),
       number: 3,
     },
   ];
@@ -279,6 +279,25 @@ export default function Home({ locale }: HomeProps) {
               </Link>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* signal main-image Section */}
+      <section className="section section-gray">
+        <div className="section-container">
+          <img
+            src="/images/signal-main-image.png"
+            alt="signal main image"
+            style={{
+              width: '100%',
+              maxWidth: '1200px',
+              height: 'auto',
+              display: 'block',
+              margin: '0 auto',
+              borderRadius: '1rem',
+              boxShadow: '0 20px 45px rgba(0, 0, 0, 0.25)',
+            }}
+          />
         </div>
       </section>
 
@@ -391,42 +410,42 @@ export default function Home({ locale }: HomeProps) {
             <div className="card">
               <img 
                 src="/images/fi_263142.svg" 
-                alt="제품 팀 아이콘" 
+                alt="프로덕트 조직 아이콘" 
                 style={{ width: '48px', height: '48px', marginBottom: '1rem' }}
               />
-              <h3 className="card-title">제품 팀</h3>
+              <h3 className="card-title">프로덕트 조직</h3>
               <p className="card-description">
                 퍼널 분석, A/B 테스트, UX 개선 등 제품 개발에 필요한 모든 데이터 분석 도구를 제공합니다.
               </p>
-              <Link href={pathToUrl("/Solutions/By Team/Product/Funnel")} className="card-link">
+              <Link href={pathToUrl("/Solutions/By Team/Product/Funnel", currentLocale)} className="card-link">
                 제품 솔루션 보기 →
               </Link>
             </div>
             <div className="card">
               <img 
                 src="/images/fi_263126.svg" 
-                alt="마케팅 팀 아이콘" 
+                alt="마케팅 조직 아이콘" 
                 style={{ width: '48px', height: '48px', marginBottom: '1rem' }}
               />
-              <h3 className="card-title">마케팅 팀</h3>
+              <h3 className="card-title">마케팅 조직</h3>
               <p className="card-description">
                 AARRR 프레임워크, 코호트 분석, 어트리뷰션 모델링으로 마케팅 성과를 정확히 측정하세요.
               </p>
-              <Link href={pathToUrl("/Solutions/By Team/Marketing/AARRR")} className="card-link">
+               <Link href={pathToUrl("/Solutions/By Team/Marketing/AARRR", currentLocale)} className="card-link">
                 마케팅 솔루션 보기 →
               </Link>
             </div>
             <div className="card">
               <img 
                 src="/images/fi_263074.svg" 
-                alt="엔지니어링 팀 아이콘" 
+                alt="테크 & 개발 조직 아이콘" 
                 style={{ width: '48px', height: '48px', marginBottom: '1rem' }}
               />
-              <h3 className="card-title">엔지니어링 팀</h3>
+              <h3 className="card-title">테크 & 개발 조직</h3>
               <p className="card-description">
                 로그 모니터링, 에러 추적, Core Web Vitals 측정으로 안정적인 서비스를 운영하세요.
               </p>
-              <Link href={pathToUrl("/Solutions/By Team/Engineering/Log Monitoring")} className="card-link">
+               <Link href={pathToUrl("/Solutions/By Team/Engineering/Log Monitoring", currentLocale)} className="card-link">
                 엔지니어링 솔루션 보기 →
               </Link>
             </div>

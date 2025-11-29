@@ -101,8 +101,8 @@ export async function updateMenu(id: string, menu: Partial<Menu>): Promise<void>
   try {
     const menuRef = doc(db, 'menus', id);
     
-    // path가 변경되는 경우, 연결된 페이지의 slug도 업데이트
-    if (menu.path !== undefined) {
+    // path가 변경되는 경우, 연결된 페이지의 slug도 업데이트 (외부 링크가 아닌 경우만)
+    if (menu.path !== undefined && !menu.isExternal) {
       const pagesRef = collection(db, 'pages');
       const pagesQuery = query(pagesRef, where('menuId', '==', id));
       const pagesSnapshot = await getDocs(pagesQuery);

@@ -135,7 +135,7 @@ body {
 
 @media (min-width: 1024px) {
   .page-renderer-wrapper {
-    grid-template-columns: 1fr 240px;
+    grid-template-columns: 240px 1fr 240px;
     gap: 4rem;
   }
 }
@@ -144,6 +144,45 @@ body {
   max-width: 720px;
   margin: 0 auto;
   width: 100%;
+}
+
+/* 사이드바 스타일 */
+.page-renderer-sidebar {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .page-renderer-sidebar {
+    display: block;
+    position: sticky;
+    top: 6rem;
+    align-self: start;
+    height: fit-content;
+    max-height: calc(100vh - 8rem);
+    overflow-y: auto;
+  }
+}
+
+.sidebar-container {
+  padding: 0.5rem 0;
+}
+
+.sidebar-header {
+  margin-bottom: 1rem;
+}
+
+.sidebar-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .page-renderer-toc {
