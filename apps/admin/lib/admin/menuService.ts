@@ -75,8 +75,29 @@ export async function createMenu(menu: Omit<Menu, 'id'>): Promise<string> {
 
   try {
     const menusRef = collection(db, 'menus');
+    
+    // undefined 값 제거 (Firestore는 undefined를 허용하지 않음)
+    const cleanMenu: any = {};
+    Object.keys(menu).forEach(key => {
+      const value = (menu as any)[key];
+      if (value !== undefined) {
+        // 중첩된 객체도 undefined 값 제거
+        if (typeof value === 'object' && value !== null && !Array.isArray(value) && !(value instanceof Date)) {
+          const cleanNested: any = {};
+          Object.keys(value).forEach(nestedKey => {
+            if (value[nestedKey] !== undefined) {
+              cleanNested[nestedKey] = value[nestedKey];
+            }
+          });
+          cleanMenu[key] = cleanNested;
+        } else {
+          cleanMenu[key] = value;
+        }
+      }
+    });
+    
     const menuData = {
-      ...menu,
+      ...cleanMenu,
       parentId: menu.parentId || '0',
       enabled: menu.enabled || { ko: true, en: false }, // 기본값: 한글만 활성화
       createdAt: new Date(),
@@ -117,9 +138,29 @@ export async function updateMenu(id: string, menu: Partial<Menu>): Promise<void>
       await Promise.all(updatePromises);
     }
     
+    // undefined 값 제거 (Firestore는 undefined를 허용하지 않음)
+    const cleanMenu: any = {};
+    Object.keys(menu).forEach(key => {
+      const value = (menu as any)[key];
+      if (value !== undefined) {
+        // 중첩된 객체도 undefined 값 제거
+        if (typeof value === 'object' && value !== null && !Array.isArray(value) && !(value instanceof Date)) {
+          const cleanNested: any = {};
+          Object.keys(value).forEach(nestedKey => {
+            if (value[nestedKey] !== undefined) {
+              cleanNested[nestedKey] = value[nestedKey];
+            }
+          });
+          cleanMenu[key] = cleanNested;
+        } else {
+          cleanMenu[key] = value;
+        }
+      }
+    });
+    
     // 메뉴 업데이트
     await withTimeout(updateDoc(menuRef, {
-      ...menu,
+      ...cleanMenu,
       updatedAt: new Date(),
     }), 3000);
   } catch (error: any) {

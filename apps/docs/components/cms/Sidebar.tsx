@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useMemo } from 'react';
 
 interface MenuNode {
   id: string;
@@ -28,6 +29,55 @@ export function Sidebar({ menus, locale, currentPath }: SidebarProps) {
   const getMenuLabel = (menu: MenuNode): string => {
     return menu.label || menu.labels?.[locale] || menu.labels?.ko || '';
   };
+
+  // 메뉴 트리에서 특정 경로를 가진 메뉴를 찾는 함수
+  const findMenuByPath = (menuList: MenuNode[], targetPath: string): MenuNode | null => {
+    for (const menu of menuList) {
+      if (menu.path === targetPath) {
+        return menu;
+      }
+      if (menu.children) {
+        const found = findMenuByPath(menu.children, targetPath);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
+  // 현재 메뉴의 루트까지의 경로를 추적하는 함수
+  const findMenuPath = (menuList: MenuNode[], targetPath: string, path: MenuNode[] = []): MenuNode[] | null => {
+    for (const menu of menuList) {
+      const currentPath = [...path, menu];
+      if (menu.path === targetPath) {
+        return currentPath;
+      }
+      if (menu.children) {
+        const found = findMenuPath(menu.children, targetPath, currentPath);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
+  // 필터링된 메뉴 트리 생성
+  const filteredMenus = useMemo(() => {
+    // currentPath와 일치하는 메뉴 경로 찾기
+    const menuPath = findMenuPath(menus, currentPath);
+    
+    if (!menuPath || menuPath.length === 0) {
+      // 현재 경로를 찾을 수 없으면 전체 메뉴 반환
+      return menus;
+    }
+
+    // 항상 depth 1(최상위) 메뉴를 기준으로 그 하위의 모든 메뉴 표시
+    const rootMenu = menuPath[0];
+    
+    // depth 1 메뉴의 모든 하위 메뉴를 포함한 트리 반환
+    return [{
+      ...rootMenu,
+      children: rootMenu.children || [],
+    }];
+  }, [menus, currentPath]);
 
   const renderMenu = (menu: MenuNode, depth: number = 0) => {
     const active = isActive(menu.path);
@@ -115,7 +165,7 @@ export function Sidebar({ menus, locale, currentPath }: SidebarProps) {
           <span className="sidebar-title">문서</span>
         </div>
         <div className="sidebar-menu">
-          {menus.map((menu) => renderMenu(menu))}
+          {filteredMenus.map((menu) => renderMenu(menu))}
         </div>
       </nav>
     </aside>

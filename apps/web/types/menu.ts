@@ -23,6 +23,7 @@ export interface MenuNode {
   markdown?: string;
   category?: string;
   checkPoint?: string;
+  isExternal?: boolean; // 외부 링크 여부
 }
 
 

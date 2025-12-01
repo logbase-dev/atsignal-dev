@@ -26,6 +26,8 @@ export interface CmsPage {
   labelsDraft?: LocalizedField;
   contentLive: LocalizedField;
   contentDraft?: LocalizedField;
+  editorType?: 'nextra' | 'toast';
+  saveFormat?: 'markdown' | 'html';
   updatedAt?: Date;
   draftUpdatedAt?: Date;
 }
@@ -56,6 +58,8 @@ function mapSnapshot(snapshot: QueryDocumentSnapshot<DocumentData>): CmsPage {
     labelsDraft: data.labelsDraft ? normalizeLocalizedField(data.labelsDraft) : undefined,
     contentLive: normalizeLocalizedField(data.contentLive ?? data.content),
     contentDraft: data.contentDraft ? normalizeLocalizedField(data.contentDraft) : undefined,
+    editorType: data.editorType || 'toast',
+    saveFormat: data.saveFormat || 'markdown',
     updatedAt: normalizeTimestamp(data.updatedAt),
     draftUpdatedAt: normalizeTimestamp(data.draftUpdatedAt),
   };

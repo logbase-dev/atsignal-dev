@@ -92,6 +92,8 @@ export function usePageEditor(site: Site, pageId: string | null) {
           slug: values.slug,
           labels: values.labels,
           content: values.content,
+          editorType: values.editorType,
+          saveFormat: values.saveFormat,
         },
         pageId ?? undefined,
       );
@@ -127,6 +129,8 @@ export function usePageEditor(site: Site, pageId: string | null) {
         slug: values.slug,
         labels: values.labels,
         content: values.content,
+        editorType: values.editorType,
+        saveFormat: values.saveFormat,
       });
       router.push(`/pages/${site}`);
     } catch (err) {

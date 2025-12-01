@@ -7,9 +7,19 @@ interface PageRendererProps {
   content: string;
   updatedAt?: Date;
   isPreview?: boolean;
+  editorType?: 'nextra' | 'toast';
+  saveFormat?: 'markdown' | 'html';
 }
 
-export default function PageRenderer({ title, content, updatedAt, isPreview }: PageRendererProps) {
+export default function PageRenderer({ 
+  title, 
+  content, 
+  updatedAt, 
+  isPreview,
+  editorType = 'toast',
+  saveFormat = 'markdown',
+}: PageRendererProps) {
+  const contentIsHTML = saveFormat === 'html';
   return (
     <>
       <article className="page-renderer-content">
@@ -45,64 +55,70 @@ export default function PageRenderer({ title, content, updatedAt, isPreview }: P
             color: '#111827',
           }}
         >
-          <ReactMarkdown
-            rehypePlugins={[rehypeSlug]}
-            components={{
-              h1: ({ node, ...props }) => (
-                <h1 id={props.id} style={{ scrollMarginTop: '100px' }} {...props} />
-              ),
-              h2: ({ node, ...props }) => (
-                <h2 id={props.id} style={{ scrollMarginTop: '100px' }} {...props} />
-              ),
-              h3: ({ node, ...props }) => (
-                <h3 id={props.id} style={{ scrollMarginTop: '100px' }} {...props} />
-              ),
-              h4: ({ node, ...props }) => (
-                <h4 id={props.id} style={{ scrollMarginTop: '100px' }} {...props} />
-              ),
-              h5: ({ node, ...props }) => (
-                <h5 id={props.id} style={{ scrollMarginTop: '100px' }} {...props} />
-              ),
-              h6: ({ node, ...props }) => (
-                <h6 id={props.id} style={{ scrollMarginTop: '100px' }} {...props} />
-              ),
-              pre: ({ node, ...props }) => (
-                <pre
-                  {...props}
-                  style={{
-                    background: '#f3f4f6',
-                    border: '1px solid #d1d5db',
-                    color: '#111827',
-                    padding: '1rem',
-                    borderRadius: '0.75rem',
-                    overflow: 'auto',
-                    fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-                    fontSize: '0.875rem',
-                    lineHeight: 1.5,
-                    margin: '1rem 0',
-                  }}
-                />
-              ),
-              code: ({ node, inline, ...props }: any) => {
-                if (inline) {
-                  return (
-                    <code
-                      {...props}
-                      style={{
-                        background: '#e2e8f0',
-                        padding: '0.1rem 0.35rem',
-                        borderRadius: '0.35rem',
-                        fontSize: '0.875em',
-                      }}
-                    />
-                  );
-                }
-                return <code {...props} />;
-              },
-            }}
-          >
-            {content || '콘텐츠가 아직 준비되지 않았습니다.'}
-          </ReactMarkdown>
+          {contentIsHTML ? (
+            <div
+              dangerouslySetInnerHTML={{ __html: content }}
+            />
+          ) : (
+            <ReactMarkdown
+              rehypePlugins={[rehypeSlug]}
+              components={{
+                h1: ({ node, ...props }) => (
+                  <h1 id={props.id} style={{ scrollMarginTop: '100px' }} {...props} />
+                ),
+                h2: ({ node, ...props }) => (
+                  <h2 id={props.id} style={{ scrollMarginTop: '100px' }} {...props} />
+                ),
+                h3: ({ node, ...props }) => (
+                  <h3 id={props.id} style={{ scrollMarginTop: '100px' }} {...props} />
+                ),
+                h4: ({ node, ...props }) => (
+                  <h4 id={props.id} style={{ scrollMarginTop: '100px' }} {...props} />
+                ),
+                h5: ({ node, ...props }) => (
+                  <h5 id={props.id} style={{ scrollMarginTop: '100px' }} {...props} />
+                ),
+                h6: ({ node, ...props }) => (
+                  <h6 id={props.id} style={{ scrollMarginTop: '100px' }} {...props} />
+                ),
+                pre: ({ node, ...props }) => (
+                  <pre
+                    {...props}
+                    style={{
+                      background: '#f3f4f6',
+                      border: '1px solid #d1d5db',
+                      color: '#111827',
+                      padding: '1rem',
+                      borderRadius: '0.75rem',
+                      overflow: 'auto',
+                      fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+                      fontSize: '0.875rem',
+                      lineHeight: 1.5,
+                      margin: '1rem 0',
+                    }}
+                  />
+                ),
+                code: ({ node, inline, ...props }: any) => {
+                  if (inline) {
+                    return (
+                      <code
+                        {...props}
+                        style={{
+                          background: '#e2e8f0',
+                          padding: '0.1rem 0.35rem',
+                          borderRadius: '0.35rem',
+                          fontSize: '0.875em',
+                        }}
+                      />
+                    );
+                  }
+                  return <code {...props} />;
+                },
+              }}
+            >
+              {content || '콘텐츠가 아직 준비되지 않았습니다.'}
+            </ReactMarkdown>
+          )}
         </div>
       </article>
       <aside className="page-renderer-toc">

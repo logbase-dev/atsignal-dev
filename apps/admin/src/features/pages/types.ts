@@ -18,5 +18,7 @@ export interface PageFormValues {
     ko: string;
     en?: string;
   };
+  editorType?: 'nextra' | 'toast';
+  saveFormat?: 'markdown' | 'html';
 }
 

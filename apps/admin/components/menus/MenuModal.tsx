@@ -15,6 +15,7 @@ interface MenuModalProps {
     parentId: string;
     order: number;
     enabled: { ko: boolean; en: boolean };
+    description?: { ko: string; en?: string };
   }) => Promise<void>;
   site: Site;
   parentMenus: Menu[]; // 부모 선택용 (모든 언어 포함)
@@ -32,6 +33,8 @@ export function MenuModal({
   const [formData, setFormData] = useState({
     labelKo: '',
     labelEn: '',
+    descriptionKo: '',
+    descriptionEn: '',
     path: '',
     isExternal: false,
     depth: 1,
@@ -63,6 +66,8 @@ export function MenuModal({
         setFormData({
           labelKo: initialMenu.labels.ko,
           labelEn: initialMenu.labels.en || '',
+          descriptionKo: initialMenu.description?.ko || '',
+          descriptionEn: initialMenu.description?.en || '',
           path: initialMenu.path,
           isExternal: initialMenu.isExternal || false,
           depth: initialMenu.depth,
@@ -84,6 +89,8 @@ export function MenuModal({
         setFormData({
           labelKo: '',
           labelEn: '',
+          descriptionKo: '',
+          descriptionEn: '',
           path: initialPath, // 부모 경로 자동 설정
           isExternal: false,
           depth: initialMenu.depth,
@@ -103,6 +110,8 @@ export function MenuModal({
       setFormData({
         labelKo: '',
         labelEn: '',
+        descriptionKo: '',
+        descriptionEn: '',
         path: '', // 최상위 메뉴는 경로 비움
         isExternal: false,
         depth: 1,
@@ -154,6 +163,10 @@ export function MenuModal({
         parentId: formData.parentId || '0',
         order: formData.order,
         enabled: formData.enabled,
+        description: (formData.descriptionKo || formData.descriptionEn) ? {
+          ko: formData.descriptionKo,
+          en: formData.descriptionEn || undefined,
+        } : undefined,
       });
       onClose();
     } catch (error) {
@@ -387,7 +400,7 @@ export function MenuModal({
         padding: '2rem',
         borderRadius: '0.5rem',
         width: '90%',
-        maxWidth: '700px',
+        maxWidth: '1000px',
         maxHeight: '90vh',
         overflowY: 'auto'
       }}>
@@ -430,6 +443,55 @@ export function MenuModal({
                 <small style={{ color: '#666', display: 'block', marginTop: '0.25rem', fontSize: '0.875rem' }}>
                   영문 메뉴명 입력 시 경로가 자동으로 생성됩니다.
                 </small>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                  한글 설명
+                </label>
+                <small style={{ color: '#666', display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+                  선택사항입니다. 메뉴에 대한 설명을 입력하세요.
+                </small>
+                <textarea
+                  value={formData.descriptionKo}
+                  onChange={(e) => setFormData({ ...formData, descriptionKo: e.target.value })}
+                  placeholder="한국어 설명 (예: 다양한 디지털 채널에서 발생하는 사용자 행동 로그를 안정적으로 수집하고 표준화하는 데이터 수집 모듈)"
+                  rows={3}
+                  style={{ 
+                    width: '100%', 
+                    padding: '0.5rem', 
+                    border: '1px solid #ddd', 
+                    borderRadius: '0.25rem',
+                    fontFamily: 'inherit',
+                    resize: 'vertical'
+                  }}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                  영문 설명
+                </label>
+                <small style={{ color: '#666', display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+                  선택사항입니다.
+                </small>
+                <textarea
+                  value={formData.descriptionEn}
+                  onChange={(e) => setFormData({ ...formData, descriptionEn: e.target.value })}
+                  placeholder="English description"
+                  rows={3}
+                  style={{ 
+                    width: '100%', 
+                    padding: '0.5rem', 
+                    border: '1px solid #ddd', 
+                    borderRadius: '0.25rem',
+                    fontFamily: 'inherit',
+                    resize: 'vertical'
+                  }}
+                />
               </div>
             </div>
           </div>

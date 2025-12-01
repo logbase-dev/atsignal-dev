@@ -109,6 +109,7 @@ export function PageEditorForm({
   const [editorType, setEditorType] = useState<'nextra' | 'toast'>('toast');
   const [saveFormat, setSaveFormat] = useState<'markdown' | 'html'>('markdown');
   const [previewing, setPreviewing] = useState(false);
+  const [showContentTooltip, setShowContentTooltip] = useState(false);
 
   const lastPublishedAt = useMemo(() => {
     if (!initialPage?.updatedAt) return null;
@@ -136,6 +137,8 @@ export function PageEditorForm({
         contentKo: '',
         contentEn: '',
       });
+      setEditorType('toast');
+      setSaveFormat('markdown');
       return;
     }
 
@@ -150,6 +153,10 @@ export function PageEditorForm({
       contentKo: contentSource.ko,
       contentEn: contentSource.en || '',
     });
+    
+    // 에디터 타입과 저장 형식 로드
+    setEditorType(initialPage.editorType || 'toast');
+    setSaveFormat(initialPage.saveFormat || 'markdown');
   }, [initialPage]);
 
   const buildPayload = () => ({
@@ -163,6 +170,9 @@ export function PageEditorForm({
       ko: formState.contentKo,
       ...(formState.contentEn ? { en: formState.contentEn } : {}),
     },
+    editorType,
+    // Nextra일 때는 무조건 markdown으로 저장
+    saveFormat: editorType === 'nextra' ? 'markdown' : saveFormat,
   });
 
   const validateForm = () => {
@@ -308,14 +318,86 @@ export function PageEditorForm({
 
       <div style={sectionStyle}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h2 style={{ margin: 0 }}>콘텐츠</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', position: 'relative' }}>
+            <h2 style={{ margin: 0 }}>콘텐츠</h2>
+            <div
+              style={{
+                position: 'relative',
+                display: 'inline-flex',
+                alignItems: 'center',
+              }}
+              onMouseEnter={() => setShowContentTooltip(true)}
+              onMouseLeave={() => setShowContentTooltip(false)}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                style={{
+                  cursor: 'help',
+                  color: '#6b7280',
+                }}
+              >
+                <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                <text x="8" y="11" textAnchor="middle" fontSize="10" fill="currentColor" fontWeight="bold">i</text>
+              </svg>
+              {showContentTooltip && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '100%',
+                    left: '50%',
+                    transform: 'translateX(-20%)',  // -50%에서 -30%로 변경 (우측으로 더 많이 보이게)
+                    marginBottom: '0.5rem',
+                    padding: '0.75rem 1rem',
+                    backgroundColor: '#1f2937',
+                    color: '#fff',
+                    borderRadius: '0.5rem',
+                    fontSize: '0.85rem',
+                    lineHeight: '1.6',
+                    whiteSpace: 'normal',
+                    maxWidth: '850px',
+                    width: 'max-content',
+                    minWidth: '400px',
+                    zIndex: 1000,
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <div style={{ fontWeight: 600, marginBottom: '0.5rem' }}>콘텐츠 작성 가이드</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div>• Docs 앱에서 기술 문서를 작성할 때는 Markdown 형식으로 작성·저장하는 것을 권장합니다.</div>
+                    <div>• Web 앱에서 동적 페이지를 생성할 때는 HTML 형식으로 작성·저장하는 것을 권장합니다.</div>
+                    <div>• Markdown 형식은 자동 목차 생성 지원, HTML 형식은 자동 목차 생성 미지원</div>
+                    <div>• Nextra ↔ TOAST UI Editor 간 문서 전환 시 호환성 문제가 발생할 수 있으므로,<br/>&nbsp;&nbsp;에디터를 변경한 후에는 반드시 문서 내용을 확인해 주세요.</div>
+                  </div>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: '20%',  // 50%에서 30%로 변경 (화살표도 우측으로 이동)
+                      transform: 'translateX(-50%)',
+                      width: 0,
+                      height: 0,
+                      borderLeft: '6px solid transparent',
+                      borderRight: '6px solid transparent',
+                      borderTop: '6px solid #1f2937',
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#6b7280' }}>에디터 타입:</span>
             <select
               value={editorType}
               onChange={(e) => {
                 const newType = e.target.value as 'nextra' | 'toast';
-                if (window.confirm('에디터를 전환하면 현재 입력된 내용이 그대로 유지됩니다. 계속하시겠습니까?')) {
+                const message = '에디터를 전환하면 현재 입력된 내용이 그대로 유지됩니다.\n\n⚠️ 주의사항:\n- 에디터 간 호환성 문제가 발생할 수 있습니다.\n- 전환 후 반드시 내용을 확인하세요.\n\n계속하시겠습니까?';
+                if (window.confirm(message)) {
                   setEditorType(newType);
                 }
               }}
@@ -374,6 +456,7 @@ export function PageEditorForm({
                   onChange={(next) => setFormState((prev) => ({ ...prev, contentKo: next }))}
                   saveFormat={saveFormat}
                   onSaveFormatChange={setSaveFormat}
+                  isNewPage={!initialPage}
                 />
               </div>
             )
@@ -400,6 +483,7 @@ export function PageEditorForm({
                   onChange={(next) => setFormState((prev) => ({ ...prev, contentEn: next }))}
                   saveFormat={saveFormat}
                   onSaveFormatChange={setSaveFormat}
+                  isNewPage={!initialPage}
                 />
               </div>
             )

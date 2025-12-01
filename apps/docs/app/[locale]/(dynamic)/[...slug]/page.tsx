@@ -109,6 +109,8 @@ export default async function DynamicPage({ params, searchParams }: PageProps) {
         content={localizedContent || '준비 중입니다.'}
         updatedAt={preview ? page.draftUpdatedAt : page.updatedAt}
         isPreview={Boolean(preview)}
+        editorType={page.editorType}
+        saveFormat={page.saveFormat}
       />
     </div>
   );

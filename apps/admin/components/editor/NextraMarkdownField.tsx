@@ -241,12 +241,12 @@ const editorShellStyle: CSSProperties = {
   borderRadius: '0.75rem',
   border: '1px solid #e2e8f0',
   backgroundColor: '#f8fafc',
-  minHeight: '320px',
+  minHeight: '500px',
 };
 
 const textareaStyle: CSSProperties = {
   width: '100%',
-  minHeight: '640px',
+  minHeight: '800px',
   padding: '1rem',
   border: 'none',
   outline: 'none',
@@ -264,7 +264,7 @@ const previewStyle: CSSProperties = {
   border: '1px solid #e2e8f0',
   backgroundColor: '#fff',
   padding: '1rem',
-  minHeight: '320px',
+  minHeight: '500px',
   color: '#0f172a',
 };
 

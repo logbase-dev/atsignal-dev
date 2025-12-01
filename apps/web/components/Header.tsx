@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { MenuNode } from '@/types/menu';
-import { buildMenuTree, pathToUrl } from '@/utils/menu';
+import { pathToUrl } from '@/utils/menu';
 import { getLocaleFromPath, defaultLocale } from '@/lib/i18n/getLocale';
 import koMessages from '@/locales/ko.json';
 import enMessages from '@/locales/en.json';
@@ -14,17 +14,18 @@ const translations = {
   en: enMessages,
 } as const;
 
-export default function Header() {
+interface HeaderProps {
+  menuTree: MenuNode[];
+}
+
+export default function Header({ menuTree }: HeaderProps) {
   const pathname = usePathname();
   const locale = getLocaleFromPath(pathname);
-  const translation = translations[locale] ?? translations[defaultLocale];
-  const contactCta = translation.header?.contactCta ?? translations.ko.header.contactCta;
+  const contactCta = translations[locale]?.header?.contactCta ?? translations.ko.header.contactCta;
   const [openDropdowns, setOpenDropdowns] = useState<Set<string>>(new Set());
-  const menuTree = buildMenuTree();
   const timeoutRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
   const handleMouseEnter = (path: string) => {
-    // 해당 path의 timeout이 있으면 취소
     const existingTimeout = timeoutRefs.current.get(path);
     if (existingTimeout) {
       clearTimeout(existingTimeout);
@@ -53,103 +54,137 @@ export default function Header() {
 
   useEffect(() => {
     return () => {
-      // 모든 timeout 정리
       timeoutRefs.current.forEach((timeout) => clearTimeout(timeout));
       timeoutRefs.current.clear();
     };
   }, []);
 
-  const renderMenuItems = (nodes: MenuNode[], level: number = 0): React.ReactNode => {
-    return nodes.map((node) => {
-      const hasChildren = node.children && node.children.length > 0;
-      const isOpen = openDropdowns.has(node.path);
+  const getNodeHref = (node: MenuNode): string => {
+    if (node.isExternal && node.url) {
+      return node.url;
+    }
+    return pathToUrl(node.path, locale);
+  };
 
-      if (hasChildren) {
-        // level 0 (depth1)은 nav-item으로 렌더링
-        if (level === 0) {
-          return (
-            <div key={node.path} className="nav-item">
-              <button
-                onMouseEnter={() => handleMouseEnter(node.path)}
-                onMouseLeave={() => handleMouseLeave(node.path)}
-                className="nav-button"
-              >
-                {node.name}
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              {isOpen && (
-                <div
-                  className="dropdown"
-                  onMouseEnter={() => handleMouseEnter(node.path)}
-                  onMouseLeave={() => handleMouseLeave(node.path)}
-                >
-                  {renderMenuItems(node.children!, level + 1)}
-                </div>
-              )}
-            </div>
-          );
-        }
-        
-        // level 1 이상 (depth2, depth3 등)은 dropdown-item-wrapper로 렌더링
+  // 공통 링크 렌더링 함수
+  const renderLink = (
+    node: MenuNode,
+    href: string,
+    className: string,
+    showArrow: boolean = false,
+    style?: React.CSSProperties
+  ) => {
+    const linkContent = (
+      <>
+        {node.name}
+        {showArrow && (
+          <svg 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+            style={{ width: '1rem', height: '1rem', display: 'inline-block', marginLeft: '0.5rem', verticalAlign: 'middle' }}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        )}
+      </>
+    );
+
+    if (node.isExternal) {
+      return (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={className}
+          style={style}
+        >
+          {linkContent}
+        </a>
+      );
+    }
+
+    return (
+      <Link href={href} className={className} style={style}>
+        {linkContent}
+      </Link>
+    );
+  };
+
+  // Cascading Dropdown을 위한 재귀 렌더링 함수
+  const renderCascadingMenu = (node: MenuNode, level: number = 0): React.ReactNode => {
+    const hasChildren = node.children && node.children.length > 0;
+    const isOpen = openDropdowns.has(node.path);
+    const isExternal = node.isExternal || false;
+    const href = getNodeHref(node);
+
+    if (hasChildren) {
+      // level 0 (depth1)은 nav-item으로 렌더링
+      if (level === 0) {
         return (
-          <div key={node.path} className="dropdown-item-wrapper">
-            <div
-              className="dropdown-item"
+          <div key={node.path} className="nav-item">
+            <button
               onMouseEnter={() => handleMouseEnter(node.path)}
               onMouseLeave={() => handleMouseLeave(node.path)}
+              className="nav-button"
             >
-              <Link
-                href={pathToUrl(node.path, locale)}
-                className="dropdown-link"
-                style={{ display: 'block', width: '100%' }}
-              >
-                {node.name}
-              </Link>
-            </div>
-            {isOpen && node.children && node.children.length > 0 && (
+              {node.name}
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {isOpen && (
               <div
-                className="dropdown dropdown-nested"
-                style={{ 
-                  position: 'relative',
-                  width: '100%',
-                  paddingLeft: '1rem',
-                  marginTop: '0.25rem'
-                }}
+                className="dropdown"
                 onMouseEnter={() => handleMouseEnter(node.path)}
                 onMouseLeave={() => handleMouseLeave(node.path)}
               >
-                {renderMenuItems(node.children, level + 1)}
+                {node.children?.map((child) => renderCascadingMenu(child, level + 1))}
               </div>
             )}
           </div>
         );
       }
 
-      // children이 없는 경우
-      if (level === 0) {
-        return (
-          <Link
-            key={node.path}
-            href={pathToUrl(node.path, locale)}
-            className="nav-link"
-          >
-            {node.name}
-          </Link>
-        );
-      }
-
+      // level 1 이상은 dropdown-item으로 렌더링
       return (
-        <Link
-          key={node.path}
-          href={pathToUrl(node.path, locale)}
-          className="dropdown-item"
-        >
-          {node.name}
-        </Link>
+        <div key={node.path} className="dropdown-item-wrapper">
+          <div
+            className="dropdown-item"
+            onMouseEnter={() => handleMouseEnter(node.path)}
+            onMouseLeave={() => handleMouseLeave(node.path)}
+          >
+            {renderLink(node, href, 'dropdown-link', hasChildren, { display: 'block', width: '100%' })}
+          </div>
+          {isOpen && node.children && node.children.length > 0 && (
+            <div
+              className="dropdown cascading-dropdown cascading-dropdown-nested"
+              onMouseEnter={() => handleMouseEnter(node.path)}
+              onMouseLeave={() => handleMouseLeave(node.path)}
+            >
+              {node.children.map((child) => renderCascadingMenu(child, level + 1))}
+            </div>
+          )}
+        </div>
       );
-    });
+    }
+
+    // children이 없는 경우
+    if (level === 0) {
+      return (
+        <div key={node.path}>
+          {renderLink(node, href, 'nav-link')}
+        </div>
+      );
+    }
+
+    return (
+      <div key={node.path} className="dropdown-item-wrapper">
+        <div className="dropdown-item">
+          {renderLink(node, href, 'dropdown-link', false, { display: 'block', width: '100%' })}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -165,7 +200,7 @@ export default function Header() {
           </Link>
           
           <nav className="nav">
-            {renderMenuItems(menuTree)}
+            {menuTree.map((node) => renderCascadingMenu(node, 0))}
           </nav>
 
           <div>
@@ -181,4 +216,3 @@ export default function Header() {
     </header>
   );
 }
-

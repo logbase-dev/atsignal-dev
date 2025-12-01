@@ -140,6 +140,7 @@ body {
   display: flex;
   align-items: center;
   transition: color 0.2s, opacity 0.2s;
+  font-family: inherit; /* 추가: body의 font-family 상속 */
 }
 
 .nav-button:hover {
@@ -160,6 +161,7 @@ body {
   color: #cbd5e1;
   text-decoration: none;
   transition: color 0.2s, opacity 0.2s;
+  font-family: inherit; /* 추가: 일관성 유지 */
 }
 
 .nav-link:hover {
@@ -220,11 +222,13 @@ body {
   font-size: 0.875rem;
   color: var(--gray-700);
   text-decoration: none;
-  transition: background 0.2s;
+  transition: background 0.2s, border-left 0.2s;
+  border-left: 3px solid transparent; /* 기본값: 투명한 border */
 }
 
 .dropdown-item:hover {
   background: var(--gray-100);
+  border-left: 3px solid var(--blue-600); /* hover 시 파란 세로줄 */
 }
 
 .cta-button {
@@ -2019,7 +2023,7 @@ body {
 }
 
 .page-renderer-content {
-  max-width: 720px;
+  max-width: 1200px;
   margin: 0 auto;
   width: 100%;
 }
@@ -2136,3 +2140,35 @@ body {
     background-color: #1e3a8a;
   }
 }
+
+/* Cascading Dropdown 스타일 */
+.cascading-dropdown {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  margin-left: 0.25rem;
+  min-width: 16rem;
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+  padding: 0.5rem 0;
+}
+
+.cascading-dropdown-nested {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  margin-left: 0.25rem;
+}
+
+.dropdown-item-wrapper {
+  position: relative;
+}
+
+.dropdown-item {
+  position: relative;
+}
+
+/* 기존 mega-dropdown 관련 스타일은 제거하거나 주석 처리 */

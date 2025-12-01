@@ -341,14 +341,14 @@ export function MenuManagement({ site, title }: MenuManagementProps) {
 
   if (loading) {
     return (
-      <div style={{ padding: '2rem', maxWidth: '1200px' }}>
+      <div style={{ padding: '2rem', maxWidth: '1500px' }}>
         <p>로딩 중...</p>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1200px' }}>
+    <div style={{ padding: '2rem', maxWidth: '1500px' }}>
       {/* 헤더 */}
       <div style={{ 
         display: 'flex', 
@@ -390,6 +390,7 @@ export function MenuManagement({ site, title }: MenuManagementProps) {
           onDragEnd={handleDragEnd}
           canDrop={canDrop}
           menus={menus}
+          site={site}
         />
       )}
 

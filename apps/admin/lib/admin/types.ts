@@ -19,6 +19,7 @@ export interface Menu {
     ko: boolean;     // 한글 메뉴 표시 여부
     en: boolean;     // 영문 메뉴 표시 여부
   };
+  description?: LocalizedField;  // 설명 (다국어 지원)
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -32,6 +33,8 @@ export interface Page {
   labelsDraft?: LocalizedField;
   contentLive: LocalizedField;
   contentDraft?: LocalizedField;
+  editorType?: 'nextra' | 'toast';
+  saveFormat?: 'markdown' | 'html';
   createdAt?: Date;
   updatedAt?: Date;
   draftUpdatedAt?: Date;

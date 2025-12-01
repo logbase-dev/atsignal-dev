@@ -19,7 +19,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { MenuNode } from '@/utils/menuTree';
-import type { Menu } from '@/lib/admin/types';
+import type { Menu, Site } from '@/lib/admin/types';
 
 interface MenuTreeProps {
   nodes: MenuNode[];
@@ -31,6 +31,7 @@ interface MenuTreeProps {
   canDrop: (draggedId: string, targetParentId: string) => boolean;
   menus: Menu[];
   level?: number;
+  site?: Site;
 }
 
 export function MenuTree({ 
@@ -42,7 +43,8 @@ export function MenuTree({
   onDragEnd,
   canDrop,
   menus,
-  level = 0 
+  level = 0,
+  site
 }: MenuTreeProps) {
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -105,6 +107,7 @@ export function MenuTree({
               canDrop={canDrop}
               menus={menus}
               level={level}
+              site={site}
             />
           ))}
         </ul>
@@ -123,6 +126,7 @@ interface MenuTreeNodeProps {
   canDrop: (draggedId: string, targetParentId: string) => boolean;
   menus: Menu[];
   level: number;
+  site?: Site;
 }
 
 function SortableMenuTreeNode({ 
@@ -134,7 +138,8 @@ function SortableMenuTreeNode({
   onDragEnd,
   canDrop,
   menus,
-  level 
+  level,
+  site
 }: MenuTreeNodeProps) {
   const {
     attributes,
@@ -151,7 +156,31 @@ function SortableMenuTreeNode({
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const [isExpanded, setIsExpanded] = useState(true);
+  // localStorage 키 생성 (site별로 구분)
+  const getStorageKey = (menuId: string) => {
+    const sitePrefix = site ? `${site}-` : '';
+    return `menu-expanded-${sitePrefix}${menuId}`;
+  };
+
+  // localStorage에서 초기값 가져오기 (없으면 false - 접힌 상태)
+  const [isExpanded, setIsExpanded] = useState(() => {
+    if (typeof window !== 'undefined' && node.id) {
+      const saved = localStorage.getItem(getStorageKey(node.id));
+      return saved === 'true';
+    }
+    return false; // 기본값은 접힌 상태
+  });
+
+  // 확장/축소 핸들러
+  const handleToggleExpand = () => {
+    const newExpanded = !isExpanded;
+    setIsExpanded(newExpanded);
+    
+    // localStorage에 저장
+    if (typeof window !== 'undefined' && node.id) {
+      localStorage.setItem(getStorageKey(node.id), String(newExpanded));
+    }
+  };
 
   return (
     <li ref={setNodeRef} style={{ marginBottom: '0.5rem', ...style }}>
@@ -203,7 +232,7 @@ function SortableMenuTreeNode({
         {/* 확장/축소 아이콘 */}
         {node.children && node.children.length > 0 ? (
           <button
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={handleToggleExpand}
             style={{ 
               marginRight: '0.5rem', 
               border: 'none', 
@@ -352,6 +381,7 @@ function SortableMenuTreeNode({
           canDrop={canDrop}
           menus={menus}
           level={level + 1}
+          site={site}
         />
       )}
     </li>

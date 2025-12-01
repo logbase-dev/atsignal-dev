@@ -43,6 +43,8 @@ function mapPageData(snapshot: any): Page {
     contentLive,
     labelsDraft,
     contentDraft,
+    editorType: data.editorType || 'toast',
+    saveFormat: data.saveFormat || 'markdown',
     createdAt: normalizeTimestamp(data.createdAt),
     updatedAt: normalizeTimestamp(data.updatedAt),
     draftUpdatedAt: normalizeTimestamp(data.draftUpdatedAt),
@@ -75,6 +77,8 @@ export interface PageDraftPayload {
   slug: string;
   labels: LocalizedField;
   content: LocalizedField;
+  editorType?: 'nextra' | 'toast';
+  saveFormat?: 'markdown' | 'html';
 }
 
 export async function savePageDraft(
@@ -95,6 +99,8 @@ export async function savePageDraft(
       slug: payload.slug,
       labelsDraft: normalizedLabels,
       contentDraft: normalizedContent,
+      editorType: payload.editorType || 'toast',
+      saveFormat: payload.saveFormat || 'markdown',
       draftUpdatedAt: now,
     });
     return pageId;
@@ -109,6 +115,8 @@ export async function savePageDraft(
     contentLive: { ...EMPTY_LOCALIZED },
     labelsDraft: normalizedLabels,
     contentDraft: normalizedContent,
+    editorType: payload.editorType || 'toast',
+    saveFormat: payload.saveFormat || 'markdown',
     createdAt: now,
     updatedAt: null,
     draftUpdatedAt: now,
@@ -133,6 +141,8 @@ export async function publishPage(
     contentLive: normalizedContent,
     labelsDraft: normalizedLabels,
     contentDraft: normalizedContent,
+    editorType: payload.editorType || 'toast',
+    saveFormat: payload.saveFormat || 'markdown',
     updatedAt: now,
     draftUpdatedAt: now,
   });

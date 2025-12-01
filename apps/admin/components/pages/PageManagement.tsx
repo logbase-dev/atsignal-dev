@@ -44,7 +44,7 @@ export function PageManagement({ site, title }: PageManagementProps) {
   };
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1200px' }}>
+    <div style={{ padding: '2rem', maxWidth: '1500px' }}>
       <div
         style={{
           display: 'flex',
