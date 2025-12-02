@@ -3,6 +3,7 @@
 import "@toast-ui/editor/dist/toastui-editor.css";
 import { Editor } from "@toast-ui/react-editor";
 import { ForwardedRef, useRef, useEffect, useState } from "react";
+import { uploadImage } from '@/lib/imageUpload';
 
 interface ToastMarkdownEditorProps {
   value: string;
@@ -183,13 +184,14 @@ export function ToastMarkdownEditor({
     return () => clearTimeout(timer);
   }, []); // 마운트 시 한 번만
 
+
   return (
     <div>
       <Editor
         ref={editorRef as ForwardedRef<Editor>}
         initialValue={value || ""}
         previewStyle="vertical"
-        height="800px"  // 600px에서 800px로 변경
+        height="800px"
         initialEditType={saveFormat === 'html' ? 'wysiwyg' : 'markdown'}
         useCommandShortcut={true}
         onChange={() => {
@@ -216,6 +218,18 @@ export function ToastMarkdownEditor({
           ['code', 'codeblock'],
           ['scrollSync'],
         ]}
+        hooks={{
+          addImageBlobHook: async (blob: Blob, callback: (url: string, alt?: string) => void) => {
+            try {
+              const file = new File([blob], `image-${Date.now()}.png`, { type: blob.type });
+              const { mediumUrl } = await uploadImage(file, { maxWidth: 800 });
+              callback(mediumUrl);
+            } catch (error: any) {
+              console.error('이미지 업로드 실패:', error);
+              alert(`이미지 업로드 실패: ${error.message}`);
+            }
+          },
+        }}
       />
       <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
         <label style={{ fontSize: '0.85rem', color: '#6b7280' }}>저장 형식:</label>

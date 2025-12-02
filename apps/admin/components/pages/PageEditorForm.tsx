@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import type { Page, Site } from '@/lib/admin/types';
@@ -97,8 +97,11 @@ export function PageEditorForm({
   submitting,
 }: PageEditorFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const menuIdFromQuery = searchParams.get('menuId');
+  
   const [formState, setFormState] = useState({
-    menuId: '',
+    menuId: menuIdFromQuery || '',
     slug: '',
     labelKo: '',
     labelEn: '',
@@ -129,9 +132,21 @@ export function PageEditorForm({
 
   useEffect(() => {
     if (!initialPage) {
+      // URL 쿼리에서 menuId가 있으면 사용, 없으면 빈 문자열
+      const menuIdFromQuery = searchParams.get('menuId');
+      
+      // menuIdFromQuery가 있으면 해당 메뉴의 path를 slug에 자동 설정
+      let initialSlug = '';
+      if (menuIdFromQuery) {
+        const selectedMenu = menuOptions.find((opt) => opt.id === menuIdFromQuery);
+        if (selectedMenu) {
+          initialSlug = selectedMenu.path;
+        }
+      }
+      
       setFormState({
-        menuId: '',
-        slug: '',
+        menuId: menuIdFromQuery || '',
+        slug: initialSlug,
         labelKo: '',
         labelEn: '',
         contentKo: '',
@@ -157,7 +172,7 @@ export function PageEditorForm({
     // 에디터 타입과 저장 형식 로드
     setEditorType(initialPage.editorType || 'toast');
     setSaveFormat(initialPage.saveFormat || 'markdown');
-  }, [initialPage]);
+  }, [initialPage, searchParams, menuOptions]); // menuOptions와 searchParams를 의존성에 추가
 
   const buildPayload = () => ({
     menuId: formState.menuId,
@@ -449,7 +464,7 @@ export function PageEditorForm({
                   콘텐츠 (한국어) <span style={{ color: '#dc2626' }}>*</span>
                 </label>
                 <p style={{ fontSize: '0.85rem', color: '#6b7280', margin: 0 }}>
-                  한글 페이지 본문입니다. Markdown 형식으로 작성하세요.
+                  한글 페이지 본문입니다. Markdown 또는 HTML 형식으로 작성하세요.
                 </p>
                 <ToastMarkdownEditor
                   value={formState.contentKo}

@@ -113,12 +113,12 @@ export default function Header({ menuTree }: HeaderProps) {
 
   // Cascading Dropdown을 위한 재귀 렌더링 함수
   const renderCascadingMenu = (node: MenuNode, level: number = 0): React.ReactNode => {
-    const hasChildren = node.children && node.children.length > 0;
+      const hasChildren = node.children && node.children.length > 0;
     const isOpen = openDropdowns.has(node.path);
     const isExternal = node.isExternal || false;
     const href = getNodeHref(node);
 
-    if (hasChildren) {
+      if (hasChildren) {
       // level 0 (depth1)은 nav-item으로 렌더링
       if (level === 0) {
         return (
@@ -146,7 +146,7 @@ export default function Header({ menuTree }: HeaderProps) {
         );
       }
 
-      // level 1 이상은 dropdown-item으로 렌더링
+      // level 1 이상은 dropdown-item으로 렌더링 (하위 메뉴가 있으면 링크 없음)
       return (
         <div key={node.path} className="dropdown-item-wrapper">
           <div
@@ -154,7 +154,18 @@ export default function Header({ menuTree }: HeaderProps) {
             onMouseEnter={() => handleMouseEnter(node.path)}
             onMouseLeave={() => handleMouseLeave(node.path)}
           >
-            {renderLink(node, href, 'dropdown-link', hasChildren, { display: 'block', width: '100%' })}
+            {/* 하위 메뉴가 있으면 링크 없이 텍스트만 표시 */}
+            <span className="dropdown-link" style={{ display: 'block', width: '100%', cursor: 'default', pointerEvents: 'none' }}>
+          {node.name}
+              <svg 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+                style={{ width: '1rem', height: '1rem', display: 'inline-block', marginLeft: '0.5rem', verticalAlign: 'middle' }}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </span>
           </div>
           {isOpen && node.children && node.children.length > 0 && (
             <div
@@ -169,7 +180,7 @@ export default function Header({ menuTree }: HeaderProps) {
       );
     }
 
-    // children이 없는 경우
+    // children이 없는 경우 (가장 깊은 depth) - 링크 표시
     if (level === 0) {
       return (
         <div key={node.path}>

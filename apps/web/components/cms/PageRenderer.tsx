@@ -21,7 +21,7 @@ export default function PageRenderer({
 }: PageRendererProps) {
   const contentIsHTML = saveFormat === 'html';
   return (
-    <div className="page-renderer-wrapper">
+    <div className={`page-renderer-wrapper ${contentIsHTML ? 'no-toc' : ''}`}>
       <article className="page-renderer-content">
         <header style={{ marginBottom: '2rem' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center' }}>
@@ -121,9 +121,11 @@ export default function PageRenderer({
           )}
         </div>
       </article>
-      <aside className="page-renderer-toc">
-        <TOC content={content} />
-      </aside>
+      {!contentIsHTML && (
+        <aside className="page-renderer-toc">
+          <TOC content={content} />
+        </aside>
+      )}
     </div>
   );
 }

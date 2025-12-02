@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { getMenus, createMenu, updateMenu, deleteMenu } from '@/lib/admin/menuService';
-import { getPagesByMenuId } from '@/lib/admin/pageService';
+import { getPagesByMenuId, getPages } from '@/lib/admin/pageService';
 import { buildMenuTree, reorderMenusInSameLevel, moveMenuToNewParent, type MenuNode } from '@/utils/menuTree';
 import { MenuTree } from './MenuTree';
 import { MenuModal } from './MenuModal';
-import type { Menu, Site } from '@/lib/admin/types';
+import type { Menu, Site, Page, PageType } from '@/lib/admin/types';
 
 interface MenuManagementProps {
   site: Site;
@@ -15,6 +15,7 @@ interface MenuManagementProps {
 
 export function MenuManagement({ site, title }: MenuManagementProps) {
   const [menus, setMenus] = useState<Menu[]>([]);
+  const [pages, setPages] = useState<Page[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMenu, setEditingMenu] = useState<Menu | undefined>();
@@ -26,12 +27,16 @@ export function MenuManagement({ site, title }: MenuManagementProps) {
   const loadMenus = async () => {
     setLoading(true);
     try {
-      console.log(`[MenuManagement] Loading menus for site=${site}`);
+      console.log(`[MenuManagement] Loading menus and pages for site=${site}`);
       const startTime = Date.now();
-      const data = await getMenus(site);
+      const [menuData, pageData] = await Promise.all([
+        getMenus(site),
+        getPages(site),
+      ]);
       const endTime = Date.now();
-      console.log(`[MenuManagement] Loaded ${data.length} menus in ${endTime - startTime}ms`);
-      setMenus(data);
+      console.log(`[MenuManagement] Loaded ${menuData.length} menus and ${pageData.length} pages in ${endTime - startTime}ms`);
+      setMenus(menuData);
+      setPages(pageData);
     } catch (error: any) {
       console.error('Failed to load menus:', error);
       const errorMessage = error.message || '메뉴를 불러오는데 실패했습니다.';
@@ -209,10 +214,12 @@ export function MenuManagement({ site, title }: MenuManagementProps) {
   const handleSubmit = async (menuData: {
     labels: { ko: string; en?: string };
     path: string;
+    pageType?: PageType;
     depth: number;
     parentId: string;
     order: number;
     enabled: { ko: boolean; en: boolean };
+    description?: { ko: string; en?: string };
   }) => {
     try {
       if (editingMenu && editingMenu.id) {
@@ -390,6 +397,7 @@ export function MenuManagement({ site, title }: MenuManagementProps) {
           onDragEnd={handleDragEnd}
           canDrop={canDrop}
           menus={menus}
+          pages={pages}
           site={site}
         />
       )}

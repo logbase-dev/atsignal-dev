@@ -138,6 +138,10 @@ body {
     grid-template-columns: 240px 1fr 240px;
     gap: 4rem;
   }
+  
+  .page-renderer-wrapper.no-toc {
+    grid-template-columns: 240px 1fr;
+  }
 }
 
 .page-renderer-content {

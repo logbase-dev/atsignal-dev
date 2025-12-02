@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   DndContext,
   closestCenter,
@@ -19,7 +20,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { MenuNode } from '@/utils/menuTree';
-import type { Menu, Site } from '@/lib/admin/types';
+import type { Menu, Site, Page } from '@/lib/admin/types';
 
 interface MenuTreeProps {
   nodes: MenuNode[];
@@ -30,6 +31,7 @@ interface MenuTreeProps {
   onDragEnd: (activeId: string, overId: string | null, activeIndex: number, overIndex: number) => void;
   canDrop: (draggedId: string, targetParentId: string) => boolean;
   menus: Menu[];
+  pages?: Page[];
   level?: number;
   site?: Site;
 }
@@ -43,6 +45,7 @@ export function MenuTree({
   onDragEnd,
   canDrop,
   menus,
+  pages = [],
   level = 0,
   site
 }: MenuTreeProps) {
@@ -106,6 +109,7 @@ export function MenuTree({
               onDragEnd={onDragEnd}
               canDrop={canDrop}
               menus={menus}
+              pages={pages}
               level={level}
               site={site}
             />
@@ -125,6 +129,7 @@ interface MenuTreeNodeProps {
   onDragEnd: (activeId: string, overId: string | null, activeIndex: number, overIndex: number) => void;
   canDrop: (draggedId: string, targetParentId: string) => boolean;
   menus: Menu[];
+  pages: Page[];
   level: number;
   site?: Site;
 }
@@ -138,9 +143,11 @@ function SortableMenuTreeNode({
   onDragEnd,
   canDrop,
   menus,
+  pages,
   level,
   site
 }: MenuTreeNodeProps) {
+  const router = useRouter();
   const {
     attributes,
     listeners,
@@ -179,6 +186,25 @@ function SortableMenuTreeNode({
     // localStorage에 저장
     if (typeof window !== 'undefined' && node.id) {
       localStorage.setItem(getStorageKey(node.id), String(newExpanded));
+    }
+  };
+
+  // 하위메뉴가 없는지 확인
+  const hasNoChildren = !node.children || node.children.length === 0;
+  
+  // 해당 메뉴에 연결된 페이지 찾기
+  const connectedPage = node.id ? pages.find(p => p.menuId === node.id) : null;
+  
+  // 페이지 작성/수정 버튼 핸들러
+  const handlePageEdit = () => {
+    if (!site || !node.id) return;
+    
+    if (connectedPage?.id) {
+      // 페이지가 있으면 수정 페이지로 이동
+      router.push(`/pages/${site}/${connectedPage.id}`);
+    } else {
+      // 페이지가 없으면 새 페이지 작성 페이지로 이동 (menuId를 쿼리로 전달)
+      router.push(`/pages/${site}/new?menuId=${node.id}`);
     }
   };
 
@@ -282,6 +308,27 @@ function SortableMenuTreeNode({
 
         {/* 액션 버튼 */}
         <div>
+
+         {/* 페이지 작성/수정 버튼 - 하위메뉴가 없고 외부 링크가 아닌 경우에만 표시 */}
+         {hasNoChildren && node.pageType !== 'links' && (
+            <button 
+              onClick={handlePageEdit}
+              style={{ 
+                marginRight: '0.5rem', 
+                padding: '0.25rem 0.5rem', 
+                backgroundColor: connectedPage ? '#28a745' : '#0070f3', 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '0.25rem', 
+                cursor: 'pointer',
+                fontSize: '0.875rem'
+              }}
+              title={connectedPage ? '페이지 수정' : '페이지 작성'}
+            >
+              {connectedPage ? '페이지 수정' : '페이지 작성'}
+            </button>
+          )}
+
           <button 
             onClick={(e) => {
               e.stopPropagation();
@@ -380,6 +427,7 @@ function SortableMenuTreeNode({
           onDragEnd={onDragEnd}
           canDrop={canDrop}
           menus={menus}
+          pages={pages}
           level={level + 1}
           site={site}
         />

@@ -89,7 +89,21 @@ export default function Header({ navItems, locale, searchIndex }: HeaderProps) {
                 onMouseEnter={() => item.children && setHoveredMenu(item.href)}
                 onMouseLeave={() => setHoveredMenu(null)}
               >
-                {item.isExternal ? (
+                {/* 하위 메뉴가 있으면 링크 없이 버튼으로 표시, 없으면 링크 표시 */}
+                {item.children && item.children.length > 0 ? (
+                  <button
+                    className="nav-item-link"
+                    style={{
+                      ...navItemStyle,
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {item.label}
+                    <span style={{ marginLeft: '0.25rem', fontSize: '0.75rem' }}>▼</span>
+                  </button>
+                ) : item.isExternal ? (
                   <a
                     href={item.href}
                     target="_blank"
@@ -100,9 +114,6 @@ export default function Header({ navItems, locale, searchIndex }: HeaderProps) {
                     }}
                   >
                     {item.label}
-                    {item.children && item.children.length > 0 && (
-                      <span style={{ marginLeft: '0.25rem', fontSize: '0.75rem' }}>▼</span>
-                    )}
                   </a>
                 ) : (
                   <Link
@@ -114,9 +125,6 @@ export default function Header({ navItems, locale, searchIndex }: HeaderProps) {
                     }}
                   >
                     {item.label}
-                    {item.children && item.children.length > 0 && (
-                      <span style={{ marginLeft: '0.25rem', fontSize: '0.75rem' }}>▼</span>
-                    )}
                   </Link>
                 )}
                 {item.children && item.children.length > 0 && hoveredMenu === item.href && (

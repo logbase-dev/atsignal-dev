@@ -121,9 +121,11 @@ export default function PageRenderer({
           )}
         </div>
       </article>
-      <aside className="page-renderer-toc">
-        <TOC content={content} />
-      </aside>
+      {!contentIsHTML && (
+        <aside className="page-renderer-toc">
+          <TOC content={content} />
+        </aside>
+      )}
     </>
   );
 }

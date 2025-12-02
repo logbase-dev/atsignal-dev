@@ -3,6 +3,7 @@
 import { collection, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Menu, Site } from './types';
+import type { PageType } from '@/lib/admin/types';
 
 // 타임아웃 헬퍼 함수
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number = 3000): Promise<T> {
@@ -45,9 +46,11 @@ export async function getMenus(site: Site): Promise<Menu[]> {
     
     const menus = querySnapshot.docs.map((doc) => {
       const data = doc.data();
+      
       return {
         id: doc.id,
         ...data,
+        pageType: data.pageType || 'dynamic', // 기본값만 설정
         // Firestore Timestamp를 Date로 변환
         createdAt: data.createdAt?.toDate?.() || data.createdAt,
         updatedAt: data.updatedAt?.toDate?.() || data.updatedAt,
@@ -123,7 +126,7 @@ export async function updateMenu(id: string, menu: Partial<Menu>): Promise<void>
     const menuRef = doc(db, 'menus', id);
     
     // path가 변경되는 경우, 연결된 페이지의 slug도 업데이트 (외부 링크가 아닌 경우만)
-    if (menu.path !== undefined && !menu.isExternal) {
+    if (menu.path !== undefined && menu.pageType !== 'links') {
       const pagesRef = collection(db, 'pages');
       const pagesQuery = query(pagesRef, where('menuId', '==', id));
       const pagesSnapshot = await getDocs(pagesQuery);

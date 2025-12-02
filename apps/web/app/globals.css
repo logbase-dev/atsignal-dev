@@ -2012,13 +2012,17 @@ body {
   gap: 2rem;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 3rem 1.5rem 4rem;
+  padding: 8rem 1.5rem 4rem;
 }
 
 @media (min-width: 1024px) {
   .page-renderer-wrapper {
     grid-template-columns: 1fr 240px;
     gap: 4rem;
+  }
+  
+  .page-renderer-wrapper.no-toc {
+    grid-template-columns: 1fr;
   }
 }
 

@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useMemo, useState, useRef, type CSSProperties } from 'react';
+import { uploadImage } from '@/lib/imageUpload';
 
 type EditorMode = 'write' | 'preview';
 
@@ -26,6 +27,9 @@ export function NextraMarkdownField({
   onChange,
 }: NextraMarkdownFieldProps) {
   const [mode, setMode] = useState<EditorMode>('write');
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const previewHtml = useMemo(() => markdownToHtml(value), [value]);
 
   const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -34,6 +38,64 @@ export function NextraMarkdownField({
 
   const handleModeChange = (nextMode: EditorMode) => {
     setMode(nextMode);
+  };
+
+  const handleImageUpload = async (file: File) => {
+    setIsUploading(true);
+    try {
+      const { mediumUrl } = await uploadImage(file, { maxWidth: 800 });
+      
+      // 현재 커서 위치에 이미지 마크다운 삽입
+      const textarea = textareaRef.current;
+      if (textarea) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const imageMarkdown = `![이미지](${mediumUrl})\n`;
+        const newValue = value.substring(0, start) + imageMarkdown + value.substring(end);
+        onChange(newValue);
+        
+        // 커서 위치 조정
+        setTimeout(() => {
+          textarea.focus();
+          const newCursorPos = start + imageMarkdown.length;
+          textarea.setSelectionRange(newCursorPos, newCursorPos);
+        }, 0);
+      } else {
+        // 커서 위치를 알 수 없으면 끝에 추가
+        onChange(value + `\n![이미지](${mediumUrl})\n`);
+      }
+    } catch (error: any) {
+      console.error('이미지 업로드 실패:', error);
+      alert(`이미지 업로드 실패: ${error.message}`);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      await handleImageUpload(file);
+    }
+    // 같은 파일을 다시 선택할 수 있도록 리셋
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDragOver = (event: React.DragEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  const handleDrop = async (event: React.DragEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const file = event.dataTransfer.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      await handleImageUpload(file);
+    }
   };
 
   return (
@@ -46,28 +108,64 @@ export function NextraMarkdownField({
             {required ? <span style={requiredStyle}>*</span> : null}
           </label>
         </div>
-        <div style={tabGroupStyle}>
-          <button
-            type="button"
-            onClick={() => handleModeChange('write')}
-            style={mode === 'write' ? tabActiveStyle : tabStyle}
-          >
-            Write
-          </button>
-          <button
-            type="button"
-            onClick={() => handleModeChange('preview')}
-            style={mode === 'preview' ? tabActiveStyle : tabStyle}
-          >
-            Preview
-          </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {mode === 'write' && (
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                style={{ display: 'none' }}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                style={{
+                  padding: '0.3rem 0.75rem',
+                  fontSize: '0.85rem',
+                  fontWeight: 500,
+                  color: '#2563eb',
+                  backgroundColor: '#eff6ff',
+                  border: '1px solid #bfdbfe',
+                  borderRadius: '0.5rem',
+                  cursor: isUploading ? 'not-allowed' : 'pointer',
+                  opacity: isUploading ? 0.6 : 1,
+                }}
+              >
+                {isUploading ? '업로드 중...' : '📷 이미지 추가'}
+              </button>
+            </>
+          )}
+          <div style={tabGroupStyle}>
+            <button
+              type="button"
+              onClick={() => handleModeChange('write')}
+              style={mode === 'write' ? tabActiveStyle : tabStyle}
+            >
+              Write
+            </button>
+            <button
+              type="button"
+              onClick={() => handleModeChange('preview')}
+              style={mode === 'preview' ? tabActiveStyle : tabStyle}
+            >
+              Preview
+            </button>
+          </div>
         </div>
       </header>
       {helperText ? <p style={helperStyle}>{helperText}</p> : null}
 
       {mode === 'write' ? (
-        <div style={editorShellStyle}>
+        <div 
+          style={editorShellStyle}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+        >
           <textarea
+            ref={textareaRef}
             id={id}
             spellCheck={false}
             onChange={handleInput}
@@ -154,6 +252,8 @@ function formatInline(text: string) {
   formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   formatted = formatted.replace(/\*(.+?)\*/g, '<em>$1</em>');
   formatted = formatted.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noreferrer" style="color:#2563eb;">$1</a>');
+  // 이미지 마크다운 처리: ![alt](url)
+  formatted = formatted.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;height:auto;border-radius:0.5rem;margin:0.5rem 0;" loading="lazy" />');
   return formatted;
 }
 

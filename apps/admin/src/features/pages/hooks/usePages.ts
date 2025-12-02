@@ -41,7 +41,10 @@ export function usePages(site: Site) {
     const tree = buildMenuTree(validMenus);
     const flattened = flattenMenuTree(tree);
     
-    return flattened.map((menu) => ({
+    // 외부 링크 메뉴 제외
+    return flattened
+      .filter((menu) => menu.pageType !== 'links')
+      .map((menu) => ({
       id: menu.id!,
       depth: menu.depth,
       path: menu.path,

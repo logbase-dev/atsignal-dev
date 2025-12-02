@@ -64,9 +64,9 @@ export function usePageEditor(site: Site, pageId: string | null) {
     const tree = buildMenuTree(validMenus);
     const flattened = flattenMenuTree(tree);
     
-    // 이미 페이지가 연결된 메뉴 제외
+    // 이미 페이지가 연결된 메뉴 제외 + 외부 링크 메뉴 제외
     return flattened
-      .filter((menu) => !usedMenuIds.has(menu.id!))
+      .filter((menu) => !usedMenuIds.has(menu.id!) && menu.pageType !== 'links')
       .map((menu) => ({
         id: menu.id!,
         depth: menu.depth,

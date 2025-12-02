@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { buildMenuTree, flattenMenuTree } from '@/utils/menuTree';
-import type { Menu, Site } from '@/lib/admin/types';
+import type { Menu, Site, PageType } from '@/lib/admin/types';
 
 interface MenuModalProps {
   isOpen: boolean;
@@ -10,7 +10,7 @@ interface MenuModalProps {
   onSubmit: (menuData: {
     labels: { ko: string; en?: string };
     path: string;
-    isExternal?: boolean;
+    pageType?: PageType;
     depth: number;
     parentId: string;
     order: number;
@@ -36,9 +36,9 @@ export function MenuModal({
     descriptionKo: '',
     descriptionEn: '',
     path: '',
-    isExternal: false,
+    pageType: 'dynamic' as PageType, // isExternal 대신 pageType 사용
     depth: 1,
-    parentId: '0', // 최상위 메뉴는 "0"
+    parentId: '0',
     order: 1,
     enabled: {
       ko: true,
@@ -47,6 +47,7 @@ export function MenuModal({
   });
   const [pathError, setPathError] = useState<string>('');
   const [pathManuallyEdited, setPathManuallyEdited] = useState(false);
+  const [showPageTypeTooltip, setShowPageTypeTooltip] = useState(false); // 추가
 
   // 부모 메뉴를 계층 구조로 정렬
   const sortedParentMenus = useMemo(() => {
@@ -56,7 +57,7 @@ export function MenuModal({
   }, [parentMenus]);
 
   useEffect(() => {
-    // 모달이 열릴 때 수동 수정 플래그 및 경고 초기화
+    // 모달이 열릴 때 수정 플래그 및 경고 초기화
     setPathManuallyEdited(false);
     setPathError('');
     
@@ -69,7 +70,7 @@ export function MenuModal({
           descriptionKo: initialMenu.description?.ko || '',
           descriptionEn: initialMenu.description?.en || '',
           path: initialMenu.path,
-          isExternal: initialMenu.isExternal || false,
+          pageType: initialMenu.pageType || 'dynamic', // 기본값만 설정
           depth: initialMenu.depth,
           parentId: initialMenu.parentId || '0',
           order: initialMenu.order,
@@ -92,7 +93,7 @@ export function MenuModal({
           descriptionKo: '',
           descriptionEn: '',
           path: initialPath, // 부모 경로 자동 설정
-          isExternal: false,
+          pageType: 'dynamic', // 하위 메뉴는 기본적으로 동적페이지
           depth: initialMenu.depth,
           parentId: parentId,
           order: initialMenu.order || maxOrder,
@@ -113,7 +114,7 @@ export function MenuModal({
         descriptionKo: '',
         descriptionEn: '',
         path: '', // 최상위 메뉴는 경로 비움
-        isExternal: false,
+        pageType: 'dynamic', // 새 메뉴는 기본적으로 동적페이지
         depth: 1,
         parentId: '0',
         order: maxOrder,
@@ -129,7 +130,7 @@ export function MenuModal({
     e.preventDefault();
     
     // 외부 링크가 아닌 경우에만 경로 검증 및 중복 체크
-    if (!formData.isExternal) {
+    if (formData.pageType !== 'links') {
       const finalPath = formData.path.endsWith('/') ? formData.path.slice(0, -1) : formData.path;
       const formatError = validatePath(finalPath);
       const duplicateError = formatError ? '' : checkPathDuplicate(finalPath);
@@ -142,7 +143,7 @@ export function MenuModal({
     }
     
     // 외부 링크인 경우 URL 검증
-    if (formData.isExternal && formData.path) {
+    if (formData.pageType === 'links' && formData.path) {
       const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
       if (!urlPattern.test(formData.path) && !formData.path.startsWith('http://') && !formData.path.startsWith('https://')) {
         setPathError('올바른 URL 형식을 입력하세요. (예: https://docs.example.com/admin/test)');
@@ -151,14 +152,71 @@ export function MenuModal({
       }
     }
     
+    // 수정 모드이고 경로가 변경된 경우 확인 창 표시
+    if (initialMenu?.id) {
+      // 경로 정규화: 앞뒤 공백 제거, 슬래시 정리
+      const normalizePath = (path: string) => {
+        if (!path) return '';
+        return path.trim().replace(/\/+$/, '').replace(/^\/+/, '');
+      };
+      
+      const originalPath = normalizePath(initialMenu.path);
+      const newPath = normalizePath(formData.pageType === 'links' 
+        ? formData.path 
+        : formData.path);
+      
+      // 디버깅 로그
+      console.log('[MenuModal] 경로 변경 체크:', {
+        initialMenuId: initialMenu.id,
+        originalPath,
+        newPath,
+        isChanged: originalPath !== newPath,
+        parentMenusCount: parentMenus.length
+      });
+      
+      // 경로가 변경되었는지 확인
+      if (originalPath !== newPath) {
+        // 하위메뉴가 있는지 확인
+        const childMenus = parentMenus.filter(m => m.parentId === initialMenu.id);
+        
+        console.log('[MenuModal] 하위메뉴 확인:', {
+          childMenusCount: childMenus.length,
+          childMenus: childMenus.map(m => ({ id: m.id, path: m.path, label: m.labels.ko }))
+        });
+        
+        let confirmMessage = '⚠️ 경로 변경 경고\n\n';
+        confirmMessage += '메뉴 경로를 변경하면 다음과 같은 문제가 발생할 수 있습니다:\n\n';
+        confirmMessage += '• 기존 URL로 접근하는 사용자들이 페이지를 찾을 수 없게 됩니다\n';
+        confirmMessage += '• 검색 엔진(SEO) 순위에 부정적인 영향을 줄 수 있습니다\n';
+        confirmMessage += '• 외부 사이트에서 링크한 경우 링크가 깨질 수 있습니다\n';
+        
+        if (childMenus.length > 0) {
+          confirmMessage += `\n• 이 메뉴에는 ${childMenus.length}개의 하위메뉴가 있어 하위메뉴의 경로도 함께 수정해야 합니다\n`;
+        }
+        
+        confirmMessage += '\n정말 경로를 변경하시겠습니까?';
+        
+        if (!window.confirm(confirmMessage)) {
+          return; // 사용자가 취소하면 저장 중단
+        }
+      }
+    } else {
+      // 디버깅: initialMenu.id가 없는 경우
+      console.log('[MenuModal] initialMenu.id가 없음:', { 
+        initialMenu: initialMenu ? { ...initialMenu, id: initialMenu.id } : null 
+      });
+    }
+    
     try {
       await onSubmit({
         labels: {
           ko: formData.labelKo,
           en: formData.labelEn || undefined, // 빈 문자열이면 undefined
         },
-        path: formData.isExternal ? formData.path : (formData.path.endsWith('/') ? formData.path.slice(0, -1) : formData.path),
-        isExternal: formData.isExternal,
+        path: formData.pageType === 'links' 
+          ? formData.path 
+          : (formData.path.endsWith('/') ? formData.path.slice(0, -1) : formData.path),
+        pageType: formData.pageType,
         depth: formData.depth,
         parentId: formData.parentId || '0',
         order: formData.order,
@@ -211,7 +269,7 @@ export function MenuModal({
 
   // 경로 중복 체크 함수
   const checkPathDuplicate = (path: string): string => {
-    if (!path || formData.isExternal) {
+    if (!path || formData.pageType === 'links') {
       return ''; // 외부 링크는 중복 체크 불필요
     }
     
@@ -226,7 +284,7 @@ export function MenuModal({
         return false;
       }
       // 같은 사이트의 메뉴만 확인
-      return menu.site === site && !menu.isExternal;
+      return menu.site === site && menu.pageType !== 'links'; // 외부링크는 중복 체크 제외
     });
     
     // 중복 체크
@@ -269,7 +327,7 @@ export function MenuModal({
     setFormData({ ...formData, labelEn: value });
     
     // 수정 모드이거나 경로를 수동으로 수정한 경우, 또는 외부 링크인 경우 자동 업데이트 안 함
-    if (initialMenu?.id || pathManuallyEdited || formData.isExternal) {
+    if (initialMenu?.id || pathManuallyEdited || formData.pageType === 'links') {
       return;
     }
     
@@ -317,7 +375,7 @@ export function MenuModal({
     // 경로를 수동으로 수정했다고 표시
     setPathManuallyEdited(true);
     
-    if (formData.isExternal) {
+    if (formData.pageType === 'links') {
       // 외부 링크인 경우 URL 검증
       const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
       if (value && !urlPattern.test(value) && !value.startsWith('http://') && !value.startsWith('https://')) {
@@ -401,7 +459,7 @@ export function MenuModal({
         borderRadius: '0.5rem',
         width: '90%',
         maxWidth: '1000px',
-        maxHeight: '90vh',
+        maxHeight: '95vh',
         overflowY: 'auto'
       }}>
         <h2 style={{ marginTop: 0, marginBottom: '1.5rem' }}>
@@ -501,21 +559,115 @@ export function MenuModal({
               <label style={{ fontWeight: 'bold' }}>
                 경로 <span style={{ color: '#dc3545' }}>*</span>
               </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={formData.isExternal}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', position: 'relative' }}>
+                <label style={{ fontWeight: 'bold', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div
+                    style={{
+                      position: 'relative',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                    }}
+                    onMouseEnter={() => setShowPageTypeTooltip(true)}
+                    onMouseLeave={() => setShowPageTypeTooltip(false)}
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      style={{
+                        cursor: 'help',
+                        color: '#6b7280',
+                      }}
+                    >
+                      <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                      <text x="8" y="11" textAnchor="middle" fontSize="10" fill="currentColor" fontWeight="bold">i</text>
+                    </svg>
+                    {showPageTypeTooltip && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          bottom: '100%',
+                          left: '50%',
+                          transform: 'translateX(-60%)',
+                          marginBottom: '0.5rem',
+                          padding: '0.75rem 1rem',
+                          backgroundColor: '#1f2937',
+                          color: '#fff',
+                          borderRadius: '0.5rem',
+                          fontSize: '0.85rem',
+                          lineHeight: '1.6',
+                          whiteSpace: 'normal',
+                          maxWidth: '700px',
+                          width: 'max-content',
+                          minWidth: '500px',
+                          zIndex: 1000,
+                          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                          pointerEvents: 'none',
+                        }}
+                      >
+                        <div style={{ fontWeight: 600, marginBottom: '0.5rem' }}>페이지 타입 설명</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          <div>
+                            <strong>동적페이지:</strong> 관리자 페이지에서 동적으로 생성하는 페이지입니다. 콘텐츠를 직접 작성하고 관리할 수 있습니다.
+                          </div>
+                          <div>
+                            <strong>정적페이지:</strong> 외부에서 코딩하여 만들고 배포한 정적 페이지입니다. 관리자 페이지에서 콘텐츠를 수정할 수 없습니다.
+                          </div>
+                          <div>
+                            <strong>게시판:</strong> 외부에서 코딩하여 만들고 배포한 게시판 페이지입니다. 관리자 페이지에서 콘텐츠를 수정할 수 없습니다.
+                          </div>
+                          <div>
+                            <strong>외부링크:</strong> 다른 사이트로 이동하는 링크입니다. (예: Web 앱 메뉴에서 Docs 앱 메뉴로 이동 시 사용)
+                          </div>
+                        </div>
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: '100%',
+                            left: '60%',  // 말풍선이 translateX(-60%)로 이동했으므로 아이콘은 말풍선의 60% 위치에 있음
+                            transform: 'translateX(-50%)',  // 화살표 중앙 정렬
+                            width: 0,
+                            height: 0,
+                            borderLeft: '6px solid transparent',
+                            borderRight: '6px solid transparent',
+                            borderTop: '6px solid #1f2937',
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  페이지 타입 <span style={{ color: '#dc3545' }}>*</span>
+                </label>
+                <select
+                  value={formData.pageType}
                   onChange={(e) => {
-                    setFormData({ ...formData, isExternal: e.target.checked, path: '' });
+                    const newPageType = e.target.value as PageType;
+                    setFormData({ 
+                      ...formData, 
+                      pageType: newPageType,
+                      path: newPageType === 'links' ? '' : formData.path // 외부링크가 아니면 경로 유지
+                    });
                     setPathError('');
                   }}
-                  style={{ width: '1rem', height: '1rem', cursor: 'pointer' }}
-                />
-                <span style={{ fontSize: '0.9rem' }}>외부 링크</span>
-              </label>
+                  style={{ 
+                    padding: '0.5rem', 
+                    border: '1px solid #ddd', 
+                    borderRadius: '0.25rem',
+                    fontSize: '0.9rem',
+                    minWidth: '150px'
+                  }}
+                >
+                  <option value="dynamic">동적페이지</option>
+                  <option value="static">정적페이지</option>
+                  <option value="notice">게시판</option>
+                  <option value="links">외부링크</option>
+                </select>
+              </div>
             </div>
             <small style={{ color: '#666', display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
-              {formData.isExternal 
+              {formData.pageType === 'links' 
                 ? '외부 URL을 입력하세요. (예: https://docs.atsignal.io/ko/admin)' 
                 : 'URL 경로입니다. 영문 소문자, 숫자, 하이픈(-), 언더스코어(_)만 사용하세요. 공백은 자동으로 하이픈으로 변환됩니다. (예: product 또는 product/log-collecting)'}
             </small>
@@ -524,7 +676,7 @@ export function MenuModal({
               value={formData.path}
               onChange={(e) => handlePathChange(e.target.value)}
               required
-              placeholder={formData.isExternal ? '예: https://docs.atsignal.io/ko/admin' : '예: product/log-collecting'}
+              placeholder={formData.pageType === 'links' ? '예: https://docs.atsignal.io/ko/admin' : '예: product/log-collecting'}
               style={{ 
                 width: '100%', 
                 padding: '0.5rem', 

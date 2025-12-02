@@ -1,5 +1,6 @@
 import { initializeApp, getApps } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -61,6 +62,7 @@ try {
 }
 
 let db: ReturnType<typeof getFirestore> | null = null;
+let storage: ReturnType<typeof getStorage> | null = null;
 
 if (app) {
   try {
@@ -72,11 +74,21 @@ if (app) {
     console.error('[Firebase] Firestore 초기화 실패:', error);
     db = null;
   }
+
+  try {
+    storage = getStorage(app);
+    if (typeof window !== 'undefined') {
+      console.log('[Firebase] Storage 초기화 완료');
+    }
+  } catch (error) {
+    console.error('[Firebase] Storage 초기화 실패:', error);
+    storage = null;
+  }
 } else {
   if (typeof window !== 'undefined') {
-    console.error('[Firebase] 앱이 초기화되지 않아 Firestore를 초기화할 수 없습니다.');
+    console.error('[Firebase] 앱이 초기화되지 않아 Firestore와 Storage를 초기화할 수 없습니다.');
   }
 }
 
-export { db };
+export { db, storage };
 

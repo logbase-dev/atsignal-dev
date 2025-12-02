@@ -98,7 +98,7 @@ export default async function DynamicPage({ params, searchParams }: PageProps) {
   const localizedContent = locale === 'en' ? content.en || content.ko : content.ko;
 
   return (
-    <div className="page-renderer-wrapper">
+    <div className={`page-renderer-wrapper ${page.saveFormat === 'html' ? 'no-toc' : ''}`}>
       <Sidebar 
         menus={menuTree} 
         locale={locale as 'ko' | 'en'} 

@@ -1,6 +1,8 @@
 export type Site = 'web' | 'docs';
 export type Locale = 'ko' | 'en';
 
+export type PageType = 'dynamic' | 'static' | 'notice' | 'links';
+
 export interface LocalizedField {
   ko: string;
   en?: string;
@@ -11,15 +13,15 @@ export interface Menu {
   site: Site;
   labels: LocalizedField;
   path: string;
-  isExternal?: boolean;  // 외부 링크 여부
+  pageType?: PageType;  // 새 필드 추가 (기본값: 'dynamic')
   depth: number;
-  parentId: string;  // "0" 또는 부모 ID
+  parentId: string;
   order: number;
   enabled: {
-    ko: boolean;     // 한글 메뉴 표시 여부
-    en: boolean;     // 영문 메뉴 표시 여부
+    ko: boolean;
+    en: boolean;
   };
-  description?: LocalizedField;  // 설명 (다국어 지원)
+  description?: LocalizedField;
   createdAt?: Date;
   updatedAt?: Date;
 }

@@ -8,7 +8,8 @@ interface MenuNode {
   label?: string;
   labels?: { ko: string; en?: string };
   path: string;
-  isExternal?: boolean;
+  pageType?: 'dynamic' | 'static' | 'notice' | 'links';  // 추가
+  isExternal?: boolean;  // 하위 호환성을 위해 유지 (deprecated)
   children?: MenuNode[];
 }
 
@@ -83,10 +84,29 @@ export function Sidebar({ menus, locale, currentPath }: SidebarProps) {
     const active = isActive(menu.path);
     const hasChildren = menu.children && menu.children.length > 0;
     const menuLabel = getMenuLabel(menu);
+    const isExternal = menu.pageType === 'links' || menu.isExternal; // pageType 우선, 하위 호환성 유지
 
     return (
       <div key={menu.id} style={{ marginBottom: depth === 0 ? '0.5rem' : '0' }}>
-        {menu.isExternal ? (
+        {/* 하위 메뉴가 있으면 링크 없이 텍스트만 표시, 없으면 링크 표시 */}
+        {hasChildren ? (
+          <span
+            style={{
+              display: 'block',
+              padding: '0.5rem 0.75rem',
+              paddingLeft: `${0.75 + depth * 1.25}rem`,
+              fontSize: depth === 0 ? '0.9rem' : '0.85rem',
+              fontWeight: depth === 0 ? 600 : 400,
+              color: active ? '#2563eb' : '#6b7280',
+              borderRadius: '0.375rem',
+              transition: 'all 0.2s',
+              backgroundColor: active ? '#eff6ff' : 'transparent',
+              cursor: 'default',
+            }}
+          >
+            {menuLabel}
+          </span>
+        ) : isExternal ? (
           <a
             href={menu.path}
             target="_blank"
