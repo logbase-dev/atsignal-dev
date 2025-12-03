@@ -153,7 +153,9 @@ export function PageEditorForm({
         contentEn: '',
       });
       setEditorType('toast');
-      setSaveFormat('markdown');
+      // site에 따라 기본 저장 형식 설정
+      // web: HTML (WYSIWYG 모드), docs: Markdown (Markdown 모드)
+      setSaveFormat(site === 'web' ? 'html' : 'markdown');
       return;
     }
 
@@ -172,7 +174,7 @@ export function PageEditorForm({
     // 에디터 타입과 저장 형식 로드
     setEditorType(initialPage.editorType || 'toast');
     setSaveFormat(initialPage.saveFormat || 'markdown');
-  }, [initialPage, searchParams, menuOptions]); // menuOptions와 searchParams를 의존성에 추가
+  }, [initialPage, searchParams, menuOptions, site]); // site를 의존성에 추가
 
   const buildPayload = () => ({
     menuId: formState.menuId,

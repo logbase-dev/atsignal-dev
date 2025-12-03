@@ -91,13 +91,40 @@ export default function Sidebar() {
         </li>
 
         <li className="nav-item">
-          <Link 
-            href="/blog" 
-            className={`nav-link ${pathname === '/blog' ? '' : 'collapsed'}`}
+          <a 
+            className={`nav-link ${pathname?.startsWith('/blog') || pathname?.startsWith('/faq') ? '' : 'collapsed'}`}
+            data-bs-target="#board-nav"
+            data-bs-toggle="collapse"
+            href="#"
           >
             <i className="bi bi-journal-text"></i>
-            <span>블로그 관리</span>
-          </Link>
+            <span>게시판 관리</span>
+            <i className="bi bi-chevron-down ms-auto"></i>
+          </a>
+          <ul 
+            id="board-nav" 
+            className={`nav-content collapse ${pathname?.startsWith('/blog') || pathname?.startsWith('/faq') ? 'show' : ''}`}
+            data-bs-parent="#sidebar-nav"
+          >
+            <li>
+              <Link 
+                href="/blog"
+                className={pathname === '/blog' ? 'active' : ''}
+              >
+                <i className="bi bi-circle"></i>
+                <span>블로그 관리</span>
+              </Link>
+            </li>
+            <li>
+              <Link 
+                href="/faq"
+                className={pathname?.startsWith('/faq') ? 'active' : ''}
+              >
+                <i className="bi bi-circle"></i>
+                <span>FAQ 관리</span>
+              </Link>
+            </li>
+          </ul>
         </li>
       </ul>
     </aside>

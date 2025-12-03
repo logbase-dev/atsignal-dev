@@ -24,6 +24,8 @@ export function ToastMarkdownEditor({
   const isUserTypingRef = useRef(false);
   const previousValueRef = useRef<string>(''); // 이전 value 추적
   const previousSaveFormatRef = useRef<'markdown' | 'html'>(saveFormat);
+  const [isFormatDropdownOpen, setIsFormatDropdownOpen] = useState(false);
+  const formatDropdownRef = useRef<HTMLDivElement>(null);
 
   // HTML 이스케이프 정규화 함수: 중복된 &amp;를 정규화
   const normalizeHtmlEscapes = (html: string): string => {
@@ -184,6 +186,38 @@ export function ToastMarkdownEditor({
     return () => clearTimeout(timer);
   }, []); // 마운트 시 한 번만
 
+  // 외부 클릭 시 드롭다운 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (formatDropdownRef.current && !formatDropdownRef.current.contains(event.target as Node)) {
+        setIsFormatDropdownOpen(false);
+      }
+    };
+
+    if (isFormatDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isFormatDropdownOpen]);
+
+  const handleFormatChange = (format: 'markdown' | 'html') => {
+    onSaveFormatChange?.(format);
+    setIsFormatDropdownOpen(false);
+    
+    const editorInstance = editorRef.current?.getInstance();
+    if (editorInstance) {
+      const targetMode = format === 'html' ? 'wysiwyg' : 'markdown';
+      editorInstance.changeMode(targetMode); // 탭 클릭 시 저장 형식 자동 변경
+      
+      const content = format === 'html' 
+        ? safeGetHTML(editorInstance)
+        : editorInstance.getMarkdown();
+      onChange(content || "");
+    }
+  };
 
   return (
     <div>
@@ -229,40 +263,123 @@ export function ToastMarkdownEditor({
               alert(`이미지 업로드 실패: ${error.message}`);
             }
           },
+          // 탭 클릭 시 저장 형식 자동 변경 - 이 기능을 추가하는지는 고민이 필요함. 이기능이 있으면 하단데 저장 형식이 보일 필요가 없어짐.
+          changeMode: (mode: string) => {
+            const editorInstance = editorRef.current?.getInstance();
+            if (!editorInstance || !onSaveFormatChange) return;
+            
+            // 모드가 변경되면 저장 형식도 자동으로 변경
+            if (mode === 'wysiwyg') {
+              // WYSIWYG 모드 선택 시 → HTML 저장 형식으로 변경
+              onSaveFormatChange('html');
+              previousSaveFormatRef.current = 'html';
+            } else if (mode === 'markdown') {
+              // Markdown 모드 선택 시 → Markdown 저장 형식으로 변경
+              onSaveFormatChange('markdown');
+              previousSaveFormatRef.current = 'markdown';
+            }
+          },
         }}
       />
       <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
         <label style={{ fontSize: '0.85rem', color: '#6b7280' }}>저장 형식:</label>
-        <select
-          value={saveFormat}
-          onChange={(e) => {
-            const format = e.target.value as 'markdown' | 'html';
-            onSaveFormatChange?.(format);
-            // 저장 형식 변경 시 에디터 모드도 변경
-            const editorInstance = editorRef.current?.getInstance();
-            if (editorInstance) {
-              const targetMode = format === 'html' ? 'wysiwyg' : 'markdown';
-              editorInstance.changeMode(targetMode);
-              
-              // 현재 내용을 선택한 형식으로 변환하여 저장
-              const content = format === 'html' 
-                ? safeGetHTML(editorInstance)
-                : editorInstance.getMarkdown();
-              onChange(content || "");
-            }
-          }}
-          style={{
-            padding: '0.4rem 0.75rem',
-            borderRadius: '0.5rem',
-            border: '1px solid #d1d5db',
-            fontSize: '0.85rem',
-            backgroundColor: '#fff',
-            cursor: 'pointer',
-          }}
-        >
-          <option value="markdown">Markdown</option>
-          <option value="html">HTML</option>
-        </select>
+        <div ref={formatDropdownRef} style={{ position: 'relative' }}>
+          <button
+            type="button"
+            onClick={() => setIsFormatDropdownOpen(!isFormatDropdownOpen)}
+            style={{
+              padding: '0.4rem 0.75rem',
+              borderRadius: '0.5rem',
+              border: '1px solid #d1d5db',
+              fontSize: '0.85rem',
+              backgroundColor: saveFormat === 'markdown' ? '#dbeafe' : '#fef3c7',
+              color: saveFormat === 'markdown' ? '#1e40af' : '#92400e',
+              cursor: 'pointer',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}
+          >
+            <span>{saveFormat === 'markdown' ? 'Markdown' : 'HTML'}</span>
+            <span style={{ fontSize: '0.7rem' }}>▼</span>
+          </button>
+          {isFormatDropdownOpen && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                marginTop: '0.25rem',
+                backgroundColor: '#fff',
+                border: '1px solid #d1d5db',
+                borderRadius: '0.5rem',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                zIndex: 1000,
+                minWidth: '120px',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => handleFormatChange('markdown')}
+                style={{
+                  width: '100%',
+                  padding: '0.5rem 0.75rem',
+                  textAlign: 'left',
+                  backgroundColor: saveFormat === 'markdown' ? '#dbeafe' : '#fff',
+                  color: saveFormat === 'markdown' ? '#1e40af' : '#374151',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem',
+                  fontWeight: saveFormat === 'markdown' ? 600 : 400,
+                  borderTopLeftRadius: '0.5rem',
+                  borderTopRightRadius: '0.5rem',
+                }}
+                onMouseEnter={(e) => {
+                  if (saveFormat !== 'markdown') {
+                    e.currentTarget.style.backgroundColor = '#f3f4f6';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (saveFormat !== 'markdown') {
+                    e.currentTarget.style.backgroundColor = '#fff';
+                  }
+                }}
+              >
+                Markdown
+              </button>
+              <button
+                type="button"
+                onClick={() => handleFormatChange('html')}
+                style={{
+                  width: '100%',
+                  padding: '0.5rem 0.75rem',
+                  textAlign: 'left',
+                  backgroundColor: saveFormat === 'html' ? '#fef3c7' : '#fff',
+                  color: saveFormat === 'html' ? '#92400e' : '#374151',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem',
+                  fontWeight: saveFormat === 'html' ? 600 : 400,
+                  borderBottomLeftRadius: '0.5rem',
+                  borderBottomRightRadius: '0.5rem',
+                }}
+                onMouseEnter={(e) => {
+                  if (saveFormat !== 'html') {
+                    e.currentTarget.style.backgroundColor = '#f3f4f6';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (saveFormat !== 'html') {
+                    e.currentTarget.style.backgroundColor = '#fff';
+                  }
+                }}
+              >
+                HTML
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
