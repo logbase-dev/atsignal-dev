@@ -21,3 +21,13 @@ export function buildPreviewUrl(site: Site, slug: string, locale: 'ko' | 'en', d
   return previewUrl.toString();
 }
 
+export function buildPublishedUrl(site: Site, slug: string, locale: 'ko' | 'en' = 'ko') {
+  const base = ORIGIN_MAP[site];
+  const sanitizedSlug = slug.replace(/^\/+/, '').replace(/\/+$/, '');
+  
+  // (dynamic)은 route group이므로 실제 URL에 포함되지 않음
+  // 실제 구조: /{locale}/{slug}
+  // 예: /ko/administrator/technical-documents
+  return `${base}/${locale}/${sanitizedSlug}`;
+}
+

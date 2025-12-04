@@ -9,7 +9,7 @@ export default function Header() {
       <div className="d-flex align-items-center justify-content-between">
         <Link href="/" className="logo d-flex align-items-center">
           <img src="/assets/img/logo.png" alt="" />
-          <span className="d-none d-lg-block">AtSignal Admin</span>
+          <span className="d-none d-lg-block">atsignal Admin</span>
         </Link>
         <i className="bi bi-list toggle-sidebar-btn"></i>
       </div>

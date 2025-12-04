@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import type { Menu, Page } from '@/lib/admin/types';
+import { buildPublishedUrl } from '@/lib/admin/preview';
 
 interface PageListProps {
   pages: Page[];
@@ -85,9 +86,56 @@ export function PageList({ pages, menus, loading, onEdit, onDelete, onPreview }:
                 </td>
                 <td style={bodyCellStyle}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                    <code style={{ backgroundColor: '#f9fafb', padding: '0.25rem 0.5rem', borderRadius: '0.375rem' }}>
-                      {page.slug}
-                    </code>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <code style={{ backgroundColor: '#f9fafb', padding: '0.25rem 0.5rem', borderRadius: '0.375rem' }}>
+                        {page.slug}
+                      </code>
+                      {page.updatedAt && page.site && ( // 발행 이력이 있으면 링크 표시
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          <a
+                            href={buildPublishedUrl(page.site, page.slug, 'ko')}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              fontSize: '0.8rem',
+                              color: '#2563eb',
+                              textDecoration: 'none',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <span>🔗</span>
+                            <span>KO 보기</span>
+                          </a>
+                          <a
+                            href={buildPublishedUrl(page.site, page.slug, 'en')}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              fontSize: '0.8rem',
+                              color: (page.labelsDraft?.en || page.labelsLive.en) ? '#2563eb' : '#9ca3af',
+                              textDecoration: 'none',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
+                              opacity: (page.labelsDraft?.en || page.labelsLive.en) ? 1 : 0.5,
+                              cursor: (page.labelsDraft?.en || page.labelsLive.en) ? 'pointer' : 'not-allowed',
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!page.labelsDraft?.en && !page.labelsLive.en) {
+                                e.preventDefault();
+                              }
+                            }}
+                          >
+                            <span>🔗</span>
+                            <span>EN 보기</span>
+                          </a>
+                        </div>
+                      )}
+                    </div>
                     {onPreview && page.id && (
                       <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
                         <button

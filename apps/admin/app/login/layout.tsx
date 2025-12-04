@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Login - AtSignal Admin',
-  description: 'AtSignal Admin 로그인 페이지',
+  title: 'Login - atsignal Admin',
+  description: 'atsignal Admin 로그인 페이지',
 };
 
 export default function LoginLayout({

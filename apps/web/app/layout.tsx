@@ -23,6 +23,19 @@ export default async function RootLayout({
   const menus = await getMenusByLocale('web', defaultLocale);
   const menuTree = buildMenuTreeFromFirestore(menus, defaultLocale);
 
+  // Footer용: 전체 메뉴를 전달 (depth2의 자식을 찾기 위해)
+  const footerMenus = menus.map((menu: any) => ({
+    id: menu.id,
+    labels: menu.labels,
+    label: menu.label,
+    path: menu.path,
+    depth: menu.depth,
+    parentId: menu.parentId,
+    order: menu.order || 0,
+    pageType: menu.pageType, // 추가
+    url: menu.url, // 추가
+  }));
+
   return (
     <html lang="ko">
       <body
@@ -34,7 +47,7 @@ export default async function RootLayout({
           <main className="min-h-screen bg-gray-50 dark:bg-gray-900" style={{ flex: 1 }}>
             {children}
           </main>
-          <Footer />
+          <Footer menus={footerMenus} />
         </div>
       </body>
     </html>

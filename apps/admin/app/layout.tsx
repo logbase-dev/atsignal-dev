@@ -5,8 +5,8 @@ import ConditionalLayout from "@/components/ConditionalLayout";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AtSignal Admin - 관리자 페이지",
-  description: "AtSignal CMS 관리자 페이지",
+  title: "atsignal Admin - 관리자 페이지",
+  description: "atsignal CMS 관리자 페이지",
 };
 
 export default function RootLayout({

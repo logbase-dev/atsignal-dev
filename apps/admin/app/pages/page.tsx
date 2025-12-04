@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 export default function PagesPage() {
   return (
-    <div style={{ padding: '2rem', maxWidth: '1200px' }}>
+    <div style={{ padding: '2rem', maxWidth: '1500px' }}>
       <h1 style={{ fontSize: '2rem', marginBottom: '2rem' }}>페이지 관리</h1>
       
       <div style={{ 

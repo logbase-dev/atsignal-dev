@@ -11,6 +11,7 @@ interface ToastMarkdownEditorProps {
   saveFormat?: 'markdown' | 'html';
   onSaveFormatChange?: (format: 'markdown' | 'html') => void;
   isNewPage?: boolean; // 페이지 추가 모드인지 여부
+  height?: string; // height prop 추가
 }
 
 export function ToastMarkdownEditor({
@@ -19,6 +20,7 @@ export function ToastMarkdownEditor({
   saveFormat = 'markdown',
   onSaveFormatChange,
   isNewPage = false, // 기본값은 false (수정 모드)
+  height = '800px', // 기본값 설정
 }: ToastMarkdownEditorProps) {
   const editorRef = useRef<Editor>(null);
   const isUserTypingRef = useRef(false);
@@ -225,7 +227,7 @@ export function ToastMarkdownEditor({
         ref={editorRef as ForwardedRef<Editor>}
         initialValue={value || ""}
         previewStyle="vertical"
-        height="800px"
+        height={height} // prop 사용
         initialEditType={saveFormat === 'html' ? 'wysiwyg' : 'markdown'}
         useCommandShortcut={true}
         onChange={() => {

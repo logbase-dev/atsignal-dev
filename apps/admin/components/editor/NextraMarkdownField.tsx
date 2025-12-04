@@ -14,6 +14,7 @@ interface NextraMarkdownFieldProps {
   helperText?: string;
   placeholder?: string;
   onChange: (nextValue: string) => void;
+  height?: string; // height prop 추가
 }
 
 export function NextraMarkdownField({
@@ -25,6 +26,7 @@ export function NextraMarkdownField({
   helperText,
   placeholder = '# 제목\n본문을 작성하세요.',
   onChange,
+  height = '800px', // 기본값 설정
 }: NextraMarkdownFieldProps) {
   const [mode, setMode] = useState<EditorMode>('write');
   const [isUploading, setIsUploading] = useState(false);
@@ -98,6 +100,22 @@ export function NextraMarkdownField({
     }
   };
 
+  // height를 사용하는 스타일 객체 생성
+  const editorShellStyleWithHeight: CSSProperties = {
+    ...editorShellStyle,
+    minHeight: height,
+  };
+
+  const textareaStyleWithHeight: CSSProperties = {
+    ...textareaStyle,
+    minHeight: height,
+  };
+
+  const previewStyleWithHeight: CSSProperties = {
+    ...previewStyle,
+    minHeight: height,
+  };
+
   return (
     <section style={wrapperStyle}>
       <header style={headerStyle}>
@@ -160,7 +178,7 @@ export function NextraMarkdownField({
 
       {mode === 'write' ? (
         <div 
-          style={editorShellStyle}
+          style={editorShellStyleWithHeight}
           onDragOver={handleDragOver}
           onDrop={handleDrop}
         >
@@ -171,11 +189,11 @@ export function NextraMarkdownField({
             onChange={handleInput}
             value={value}
             placeholder={placeholder}
-            style={textareaStyle}
+            style={textareaStyleWithHeight}
           />
         </div>
       ) : (
-        <div style={previewStyle}>
+        <div style={previewStyleWithHeight}>
           {value.trim() ? (
             <div dangerouslySetInnerHTML={{ __html: previewHtml }} />
           ) : (

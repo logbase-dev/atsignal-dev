@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import type { Page, Site } from '@/lib/admin/types';
 import type { MenuOption, PageFormValues } from '@/src/features/pages/types';
 import { NextraMarkdownField } from '@/components/editor/NextraMarkdownField';
+import { buildPublishedUrl } from '@/lib/admin/preview';
 
 // SSR 비활성화하여 동적 import
 const ToastMarkdownEditor = dynamic(
@@ -175,6 +176,15 @@ export function PageEditorForm({
     setEditorType(initialPage.editorType || 'toast');
     setSaveFormat(initialPage.saveFormat || 'markdown');
   }, [initialPage, searchParams, menuOptions, site]); // site를 의존성에 추가
+
+  // HTML 콘텐츠가 비어있는지 확인하는 헬퍼 함수
+  const isEmptyContent = (content: string): boolean => {
+    if (!content || !content.trim()) return true;
+    // HTML 태그를 제거하고 텍스트만 추출
+    const textContent = content.replace(/<[^>]*>/g, '').trim();
+    // 빈 HTML 태그들만 있는 경우도 비어있는 것으로 간주
+    return textContent === '' || textContent === '\n' || textContent === '\r\n';
+  };
 
   const buildPayload = () => ({
     menuId: formState.menuId,
@@ -517,22 +527,110 @@ export function PageEditorForm({
           borderTop: '1px solid #e5e7eb',
         }}
       >
-        <button
-          type="button"
-          onClick={handlePreviewClick}
-          disabled={previewing}
-          style={{
-            padding: '0.75rem 1.5rem',
-            borderRadius: '0.5rem',
-            border: '1px solid #cbd5f5',
-            backgroundColor: '#eef2ff',
-            color: '#4338ca',
-            cursor: previewing ? 'not-allowed' : 'pointer',
-            minWidth: '140px',
-          }}
-        >
-          {previewing ? '미리보기 준비중...' : '미리보기'}
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          {/* 미리보기 버튼들 */}
+          <button
+            type="button"
+            onClick={async () => {
+              if (!validateForm()) return;
+              setPreviewing(true);
+              try {
+                const url = await onPreview(buildPayload(), 'ko');
+                window.open(url, '_blank', 'noopener,noreferrer');
+              } finally {
+                setPreviewing(false);
+              }
+            }}
+            disabled={previewing || (!formState.labelKo.trim() && isEmptyContent(formState.contentKo))}
+            style={{
+              padding: '0.75rem 1.5rem',
+              borderRadius: '0.5rem',
+              border: '1px solid #cbd5f5',
+              backgroundColor: '#eef2ff',
+              color: '#4338ca',
+              cursor: previewing || (!formState.labelKo.trim() && isEmptyContent(formState.contentKo)) ? 'not-allowed' : 'pointer',
+              opacity: (!formState.labelKo.trim() && isEmptyContent(formState.contentKo)) ? 0.5 : 1,
+              minWidth: '120px',
+            }}
+          >
+            {previewing ? '준비중...' : 'KO 미리보기'}
+          </button>
+          <button
+            type="button"
+            onClick={async () => {
+              if (!validateForm()) return;
+              setPreviewing(true);
+              try {
+                const url = await onPreview(buildPayload(), 'en');
+                window.open(url, '_blank', 'noopener,noreferrer');
+              } finally {
+                setPreviewing(false);
+              }
+            }}
+            disabled={previewing || (!formState.labelEn.trim() && isEmptyContent(formState.contentEn))}
+            style={{
+              padding: '0.75rem 1.5rem',
+              borderRadius: '0.5rem',
+              border: '1px solid #cbd5f5',
+              backgroundColor: '#eef2ff',
+              color: '#4338ca',
+              cursor: previewing || (!formState.labelEn.trim() && isEmptyContent(formState.contentEn)) ? 'not-allowed' : 'pointer',
+              opacity: (!formState.labelEn.trim() && isEmptyContent(formState.contentEn)) ? 0.5 : 1,
+              minWidth: '120px',
+            }}
+          >
+            {previewing ? '준비중...' : 'EN 미리보기'}
+          </button>
+          
+          {/* 운영 사이트 보기 버튼 - 발행 이력이 있는 페이지만 표시 */}
+          {initialPage?.updatedAt && (
+            <>
+              <a
+                href={buildPublishedUrl(site, formState.slug, 'ko')}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '0.5rem',
+                  border: '1px solid #10b981',
+                  backgroundColor: '#d1fae5',
+                  color: '#065f46',
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minWidth: '120px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                KO 사이트 보기
+              </a>
+              <a
+                href={buildPublishedUrl(site, formState.slug, 'en')}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '0.5rem',
+                  border: '1px solid #10b981',
+                  backgroundColor: '#d1fae5',
+                  color: '#065f46',
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minWidth: '120px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  opacity: (!formState.labelEn.trim() && isEmptyContent(formState.contentEn)) ? 0.5 : 1,
+                }}
+              >
+                EN 사이트 보기
+              </a>
+            </>
+          )}
+        </div>
         <button
           type="button"
           onClick={() => router.push(`/pages/${site}`)}

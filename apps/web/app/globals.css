@@ -1145,6 +1145,13 @@ body {
   }
 }
 
+@media (min-width: 1024px) {
+  .footer-links {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2rem;
+  }
+}
+
 .footer-column {
   display: flex;
   flex-direction: column;

@@ -60,3 +60,35 @@ export interface BlogPost {
   published: boolean;
 }
 
+export interface FAQCategory {
+  id?: string;
+  name: LocalizedField;
+  description?: LocalizedField;
+  order: number;
+  enabled: {
+    ko: boolean;
+    en: boolean;
+  };
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface FAQ {
+  id?: string;
+  question: LocalizedField;
+  answer: LocalizedField;
+  categoryId?: string; // 카테고리 (선택사항)
+  level: number; // 우선순위 레벨 (낮을수록 높은 우선순위, 기본값: 999)
+  isTop: boolean; // 맨 상위 표시 여부 (기본값: false)
+  enabled: {
+    ko: boolean;
+    en: boolean;
+  };
+  tags?: string[]; // 해시태그 배열 (선택사항) - 추가
+  editorType?: 'nextra' | 'toast'; // 에디터 타입
+  saveFormat?: 'markdown' | 'html'; // 저장 형식
+  createdAt?: Date;
+  updatedAt?: Date;
+  order?: number; // 정렬 순서 (같은 level 내에서)
+}
+
