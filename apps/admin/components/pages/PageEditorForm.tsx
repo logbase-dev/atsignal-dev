@@ -601,7 +601,13 @@ export function PageEditorForm({
                   justifyContent: 'center',
                   minWidth: '120px',
                   fontWeight: 600,
-                  cursor: 'pointer',
+                  cursor: (!formState.labelKo.trim() && isEmptyContent(formState.contentKo)) ? 'not-allowed' : 'pointer',
+                  opacity: (!formState.labelKo.trim() && isEmptyContent(formState.contentKo)) ? 0.5 : 1,
+                }}
+                onClick={(e) => {
+                  if (!formState.labelKo.trim() && isEmptyContent(formState.contentKo)) {
+                    e.preventDefault();
+                  }
                 }}
               >
                 KO 사이트 보기
@@ -622,8 +628,13 @@ export function PageEditorForm({
                   justifyContent: 'center',
                   minWidth: '120px',
                   fontWeight: 600,
-                  cursor: 'pointer',
+                  cursor: (!formState.labelEn.trim() && isEmptyContent(formState.contentEn)) ? 'not-allowed' : 'pointer',
                   opacity: (!formState.labelEn.trim() && isEmptyContent(formState.contentEn)) ? 0.5 : 1,
+                }}
+                onClick={(e) => {
+                  if (!formState.labelEn.trim() && isEmptyContent(formState.contentEn)) {
+                    e.preventDefault();
+                  }
                 }}
               >
                 EN 사이트 보기
