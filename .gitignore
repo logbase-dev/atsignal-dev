@@ -1,0 +1,33 @@
+# Dependencies
+**/node_modules
+.pnpm-store
+
+# Build directory
+**/dist
+**/out
+**/.next
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local environment variables
+.env*.local
+.env
+
+# System files
+.DS_Store
+*.pem
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Editor
+.vscode/
+.idea/
